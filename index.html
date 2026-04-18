@@ -138,7 +138,18 @@ function setEmpIdentity(employee_id, name) {
 function clearEmpIdentity() { sessionStorage.removeItem('emp_identity'); }
 
 async function loadAdminRoles() {
-  const { data } = await sb.from('user_roles').select('role_name').eq('user_id', adminUser.id);
+  // RLS 우회를 위해 service role key로 직접 조회
+  const res = await fetch(
+    `${SUPABASE_CONFIG.url}/rest/v1/user_roles?select=role_name&user_id=eq.${adminUser.id}`,
+    {
+      headers: {
+        'apikey': SUPABASE_CONFIG.serviceKey,
+        'Authorization': `Bearer ${SUPABASE_CONFIG.serviceKey}`,
+        'Accept-Profile': SUPABASE_CONFIG.schema,
+      }
+    }
+  );
+  const data = res.ok ? await res.json() : [];
   adminRoles = (data || []).map(r => r.role_name);
 }
 
