@@ -150,158 +150,316 @@ async function logout() {
 }
 
 // ============================================================
-// 로그인 화면 (통합: 직원 탭 / 관리자 탭)
+// 로그인 화면 (단일 스마트 폼 — @ 입력 시 관리자, 사번 입력 시 직원)
 // ============================================================
-function renderLogin(tab = 'employee') {
+function renderLogin() {
   appMode = null;
   root.innerHTML = `
-    <div class="min-h-screen flex flex-col">
-      <div class="flex-1 flex items-center justify-center px-4 py-16">
-        <div class="w-full max-w-md fade-in">
-
-          <div class="text-center mb-8">
-            <div class="inline-flex items-center gap-2 mb-4">
-              <div class="w-9 h-9 rounded-lg bg-brand text-white grid place-items-center font-bold text-sm">D</div>
-              <span class="text-sm font-semibold text-ink-700 tracking-wide uppercase">Daewoong Pharmaceutical</span>
+    <style>
+      .dw-login-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f1f1;
+        padding: 24px;
+      }
+      .dw-login-card {
+        width: 100%;
+        max-width: 960px;
+        min-height: 580px;
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+      }
+      .dw-brand-panel {
+        position: relative;
+        background: linear-gradient(155deg, #1a1a1a 0%, #2a2a2a 55%, #3a2a1a 100%);
+        padding: 64px 52px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+      }
+      .dw-brand-panel::after {
+        content: "退職";
+        position: absolute;
+        right: -40px;
+        bottom: -60px;
+        font-size: 240px;
+        font-weight: 900;
+        color: rgba(255,255,255,0.04);
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+      }
+      .dw-brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .dw-brand-logo-mark {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .dw-brand-logo-mark span {
+        display: block;
+        height: 3px;
+        background: #F37321;
+        border-radius: 2px;
+        transition: width 0.3s;
+      }
+      .dw-brand-logo-mark span:nth-child(1) { width: 28px; }
+      .dw-brand-logo-mark span:nth-child(2) { width: 18px; }
+      .dw-brand-logo-text {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .dw-brand-panel h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.25;
+        margin-top: 48px;
+      }
+      .dw-brand-panel h2 em {
+        display: block;
+        font-style: normal;
+        color: #F37321;
+      }
+      .dw-brand-panel p {
+        font-size: 13px;
+        color: rgba(255,255,255,0.45);
+        line-height: 1.7;
+        margin-top: 16px;
+      }
+      .dw-brand-footer {
+        font-size: 11px;
+        color: rgba(255,255,255,0.2);
+        letter-spacing: 0.05em;
+      }
+      .dw-form-panel {
+        background: #fff;
+        padding: 64px 56px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .dw-form-panel h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 6px;
+      }
+      .dw-form-panel .dw-sub {
+        font-size: 13px;
+        color: #9CA3AF;
+        margin-bottom: 36px;
+        line-height: 1.6;
+      }
+      .dw-field { margin-bottom: 18px; }
+      .dw-field label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 7px;
+        letter-spacing: 0.03em;
+      }
+      .dw-field input {
+        width: 100%;
+        height: 46px;
+        padding: 0 16px;
+        border: 1.5px solid #E5E7EB;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        color: #111;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-sizing: border-box;
+      }
+      .dw-field input:focus {
+        border-color: #F37321;
+        box-shadow: 0 0 0 3px rgba(243,115,33,0.12);
+      }
+      .dw-hint {
+        font-size: 11px;
+        color: #9CA3AF;
+        margin-top: 5px;
+      }
+      .dw-error {
+        display: none;
+        font-size: 13px;
+        color: #EF4444;
+        background: #FFF5F5;
+        border: 1px solid #FECACA;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 16px;
+      }
+      .dw-error.visible { display: block; }
+      .dw-btn {
+        width: 100%;
+        height: 48px;
+        background: #F37321;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        letter-spacing: 0.02em;
+      }
+      .dw-btn:hover { background: #E06515; }
+      .dw-btn:active { transform: scale(0.99); }
+      .dw-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+      .dw-mode-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 28px;
+        letter-spacing: 0.05em;
+        transition: all 0.2s;
+      }
+      .dw-mode-badge.emp  { background: #EFF4FF; color: #1E40AF; }
+      .dw-mode-badge.admin { background: #FFF4EE; color: #C05B10; }
+      @media (max-width: 680px) {
+        .dw-login-card { grid-template-columns: 1fr; min-height: auto; }
+        .dw-brand-panel { min-height: 200px; padding: 40px 32px; }
+        .dw-brand-panel h2 { font-size: 24px; margin-top: 24px; }
+        .dw-brand-panel::after { font-size: 160px; }
+        .dw-form-panel { padding: 40px 32px; }
+      }
+    </style>
+    <div class="dw-login-wrap fade-in">
+      <div class="dw-login-card">
+        <!-- 왼쪽 브랜드 패널 -->
+        <div class="dw-brand-panel">
+          <div class="dw-brand-logo">
+            <div class="dw-brand-logo-mark"><span></span><span></span></div>
+            <span class="dw-brand-logo-text">Daewoong · HR</span>
+          </div>
+          <div>
+            <h2>퇴직 관리<em>포털</em></h2>
+            <p>직원 퇴직 접수부터 후임 인재 추천까지,<br/>하나의 플랫폼에서 통합 관리합니다.</p>
+          </div>
+          <span class="dw-brand-footer">© 2026 Daewoong Pharmaceutical · HR Division</span>
+        </div>
+        <!-- 오른쪽 폼 패널 -->
+        <div class="dw-form-panel">
+          <div id="modeBadge" class="dw-mode-badge emp">직원 모드</div>
+          <h3>로그인</h3>
+          <p class="dw-sub">사번을 입력하면 직원, 이메일(@)을 입력하면<br/>관리자로 자동 인식합니다.</p>
+          <form id="smartLoginForm" autocomplete="off">
+            <div class="dw-field">
+              <label id="field1Label">사번 또는 이메일</label>
+              <input id="field1" name="field1" type="text" required
+                placeholder="20231234 또는 admin@daewoong.co.kr" autocomplete="username" />
             </div>
-            <h1 class="text-2xl font-semibold text-ink-900">HR 포털</h1>
-            <p class="mt-1 text-sm text-ink-500">퇴직 접수 및 관리 시스템</p>
-          </div>
-
-          <!-- 탭 -->
-          <div class="flex bg-ink-100 rounded-xl p-1 mb-6">
-            <button id="tabEmp" onclick="renderLogin('employee')"
-              class="flex-1 h-9 rounded-lg text-sm font-medium transition ${tab==='employee' ? 'bg-white shadow-soft text-ink-900' : 'text-ink-500 hover:text-ink-700'}">
-              직원
-            </button>
-            <button id="tabAdmin" onclick="renderLogin('admin')"
-              class="flex-1 h-9 rounded-lg text-sm font-medium transition ${tab==='admin' ? 'bg-white shadow-soft text-ink-900' : 'text-ink-500 hover:text-ink-700'}">
-              관리자 (HR)
-            </button>
-          </div>
-
-          <div class="bg-white rounded-xl2 shadow-card border border-ink-100 p-8">
-            ${tab === 'employee' ? employeeLoginForm() : adminLoginForm()}
-          </div>
-
-          <p class="mt-6 text-center text-xs text-ink-400">
+            <div class="dw-field">
+              <label id="field2Label">이름</label>
+              <input id="field2" name="field2" type="text" required
+                placeholder="홍길동" autocomplete="off" />
+              <p class="dw-hint" id="field2Hint">직원명부의 이름을 그대로 입력해 주세요.</p>
+            </div>
+            <div class="dw-error" id="loginError"></div>
+            <button type="submit" class="dw-btn" id="loginBtn">로그인</button>
+          </form>
+          <p style="margin-top:20px;font-size:11px;color:#C4C9D4;text-align:center;">
             문의: hr@daewoong.co.kr · 내선 1234
           </p>
         </div>
       </div>
     </div>
   `;
-
-  if (tab === 'employee') bindEmployeeLogin();
-  else bindAdminLogin();
+  bindSmartLogin();
 }
 
-function employeeLoginForm() {
-  return `
-    <h2 class="text-base font-semibold text-ink-900 mb-1">직원 본인 확인</h2>
-    <p class="text-xs text-ink-500 mb-6">사번과 이름으로 확인 후 퇴직 메뉴를 이용하실 수 있습니다.</p>
-    <form id="empLoginForm" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-ink-700 mb-1.5">사번</label>
-        <input name="employee_id" type="text" required placeholder="예: 20231234"
-          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-ink-700 mb-1.5">이름</label>
-        <input name="name" type="text" required placeholder="홍길동"
-          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
-      </div>
-      <div id="empLoginError" class="hidden text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
-      <button type="submit" id="empLoginBtn"
-        class="w-full h-11 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white font-medium rounded-lg transition">
-        다음 단계로 →
-      </button>
-    </form>
-    <p class="mt-5 text-xs text-ink-400 leading-relaxed">
-      · 사번/이름은 최신 직원명부(월 1회 갱신) 기준으로 조회됩니다.<br/>
-      · 일치하지 않을 경우 인사팀(내선 1234)으로 문의해 주세요.
-    </p>
-  `;
-}
+function bindSmartLogin() {
+  const field1 = document.getElementById('field1');
+  const field2 = document.getElementById('field2');
+  const field2Label = document.getElementById('field2Label');
+  const field2Hint = document.getElementById('field2Hint');
+  const modeBadge = document.getElementById('modeBadge');
 
-function adminLoginForm() {
-  return `
-    <h2 class="text-base font-semibold text-ink-900 mb-1">관리자 로그인</h2>
-    <p class="text-xs text-ink-500 mb-6">인사담당자 전용입니다. Supabase 계정으로 로그인하세요.</p>
-    <form id="adminLoginForm" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-ink-700 mb-1.5">이메일</label>
-        <input name="email" type="email" required
-          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-ink-700 mb-1.5">비밀번호</label>
-        <input name="password" type="password" required
-          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
-      </div>
-      <div id="adminLoginError" class="hidden text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
-      <button type="submit" id="adminLoginBtn"
-        class="w-full h-11 bg-ink-900 hover:bg-ink-800 disabled:opacity-60 text-white font-medium rounded-lg transition">
-        로그인
-      </button>
-    </form>
-  `;
-}
+  function isAdminMode() { return field1.value.includes('@'); }
 
-function bindEmployeeLogin() {
-  document.getElementById('empLoginForm').addEventListener('submit', async (e) => {
+  function updateMode() {
+    if (isAdminMode()) {
+      field2Label.textContent = '비밀번호';
+      field2.type = 'password';
+      field2.placeholder = '••••••••';
+      field2Hint.textContent = '관리자(HR담당자) 계정으로 로그인합니다.';
+      modeBadge.textContent = '관리자 모드';
+      modeBadge.className = 'dw-mode-badge admin';
+    } else {
+      field2Label.textContent = '이름';
+      field2.type = 'text';
+      field2.placeholder = '홍길동';
+      field2Hint.textContent = '직원명부의 이름을 그대로 입력해 주세요.';
+      modeBadge.textContent = '직원 모드';
+      modeBadge.className = 'dw-mode-badge emp';
+    }
+  }
+
+  field1.addEventListener('input', updateMode);
+
+  document.getElementById('smartLoginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const fd = new FormData(e.target);
-    const errBox = document.getElementById('empLoginError');
-    const btn = document.getElementById('empLoginBtn');
-    errBox.classList.add('hidden');
+    const errBox = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    errBox.classList.remove('visible');
     btn.disabled = true; btn.textContent = '확인 중...';
-    try {
-      const { data, error } = await sb.rpc('check_employee_identity', {
-        p_employee_id: fd.get('employee_id').trim(),
-        p_name: fd.get('name').trim(),
-      });
-      if (error) throw error;
-      if (!data) {
-        errBox.textContent = '사번과 이름이 일치하지 않습니다.';
-        errBox.classList.remove('hidden'); return;
-      }
-      setEmpIdentity(fd.get('employee_id').trim(), fd.get('name').trim());
-      appMode = 'employee';
-      renderPortal();
-    } catch (err) {
-      errBox.textContent = '오류: ' + (err.message || '잠시 후 다시 시도해 주세요.');
-      errBox.classList.remove('hidden');
-    } finally { btn.disabled = false; btn.textContent = '다음 단계로 →'; }
-  });
-}
 
-function bindAdminLogin() {
-  document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const errBox = document.getElementById('adminLoginError');
-    const btn = document.getElementById('adminLoginBtn');
-    errBox.classList.add('hidden');
-    btn.disabled = true; btn.textContent = '로그인 중...';
+    const v1 = field1.value.trim();
+    const v2 = field2.value.trim();
+
     try {
-      const { data, error } = await sb.auth.signInWithPassword({
-        email: fd.get('email'), password: fd.get('password'),
-      });
-      if (error) throw error;
-      adminUser = data.user;
-      await loadAdminRoles();
-      if (adminRoles.length === 0) {
-        errBox.textContent = '로그인은 성공했지만 권한이 없습니다. hr_admin에게 문의하세요.';
-        errBox.classList.remove('hidden');
-        await sb.auth.signOut(); return;
+      if (isAdminMode()) {
+        // 관리자 경로
+        const { data, error } = await sb.auth.signInWithPassword({ email: v1, password: v2 });
+        if (error) throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+        adminUser = data.user;
+        await loadAdminRoles();
+        if (adminRoles.length === 0) {
+          await sb.auth.signOut();
+          throw new Error('로그인은 성공했지만 접근 권한이 없습니다. HR 관리자에게 문의하세요.');
+        }
+        appMode = 'admin';
+        renderAdminApp();
+      } else {
+        // 직원 경로
+        const { data, error } = await sb.rpc('check_employee_identity', {
+          p_employee_id: v1,
+          p_name: v2,
+        });
+        if (error) throw error;
+        if (!data) throw new Error('사번과 이름이 일치하지 않습니다.');
+        setEmpIdentity(v1, v2);
+        appMode = 'employee';
+        renderPortal();
       }
-      appMode = 'admin';
-      renderAdminApp();
     } catch (err) {
-      errBox.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
-      errBox.classList.remove('hidden');
-    } finally { btn.disabled = false; btn.textContent = '로그인'; }
+      errBox.textContent = err.message || '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      errBox.classList.add('visible');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '로그인';
+    }
   });
 }
 
