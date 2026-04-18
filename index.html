@@ -1499,8 +1499,8 @@ async function renderUpload() {
       </div>
       <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft overflow-hidden">
         <div class="px-5 py-4 border-b border-ink-100 font-semibold text-ink-900">업로드 이력</div>
-        <table class="w-full text-sm"><thead class="bg-ink-50 text-ink-600 text-left"><tr class="border-b border-ink-100"><th class="px-5 py-2.5 font-medium">일시</th><th class="px-5 py-2.5 font-medium">파일명</th><th class="px-5 py-2.5 text-right font-medium">총건</th><th class="px-5 py-2.5 text-right font-medium">신규</th><th class="px-5 py-2.5 text-right font-medium">갱신</th></tr></thead>
-        <tbody>${!logs||logs.length===0?`<tr><td colspan="5" class="px-5 py-8 text-center text-ink-400">이력 없음</td></tr>`:logs.map(l=>`<tr class="border-b border-ink-100"><td class="px-5 py-2.5 tabular-nums">${formatDateTime(l.uploaded_at)}</td><td class="px-5 py-2.5">${esc(l.uploaded_file_name)}</td><td class="px-5 py-2.5 text-right tabular-nums">${l.total_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-accent-green">${l.inserted_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-brand">${l.updated_count}</td></tr>`).join('')}</tbody>
+        <table class="w-full text-sm"><thead class="bg-ink-50 text-ink-600 text-left"><tr class="border-b border-ink-100"><th class="px-5 py-2.5 font-medium">일시</th><th class="px-5 py-2.5 font-medium">파일명</th><th class="px-5 py-2.5 font-medium">업로더</th><th class="px-5 py-2.5 text-right font-medium">총건</th><th class="px-5 py-2.5 text-right font-medium">신규</th><th class="px-5 py-2.5 text-right font-medium">갱신</th></tr></thead>
+        <tbody>${!logs||logs.length===0?`<tr><td colspan="6" class="px-5 py-8 text-center text-ink-400">이력 없음</td></tr>`:logs.map(l=>`<tr class="border-b border-ink-100"><td class="px-5 py-2.5 tabular-nums">${formatDateTime(l.uploaded_at)}</td><td class="px-5 py-2.5">${esc(l.uploaded_file_name)}</td><td class="px-5 py-2.5 text-ink-500">${esc(l.uploaded_by||'-')}</td><td class="px-5 py-2.5 text-right tabular-nums">${l.total_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-accent-green">${l.inserted_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-brand">${l.updated_count}</td></tr>`).join('')}</tbody>
         </table>
       </div>
     </div>`;
@@ -1519,7 +1519,7 @@ async function handleUpload() {
     const buf=await file.arrayBuffer(); const wb2=XLSX.read(buf,{type:'array'}); const ws=wb2.Sheets[wb2.SheetNames[0]];
     const raw=XLSX.utils.sheet_to_json(ws,{defval:null}); if(!raw.length) throw new Error('데이터 없음');
     const { data: company }=await sbAdmin.from('companies').select('id').eq('code',SUPABASE_CONFIG.companyCode).single(); if(!company) throw new Error('회사 정보 없음');
-    const { data: logRow }=await sbAdmin.from('employee_upload_logs').insert({company_id:company.id,uploaded_file_name:file.name,total_count:raw.length}).select().single();
+    const { data: logRow }=await sbAdmin.from('employee_upload_logs').insert({company_id:company.id,uploaded_file_name:file.name,total_count:raw.length,uploaded_by:adminUser?.email||null}).select().single();
     const records=raw.map(row=>{ const m={company_id:company.id,last_upload_id:logRow.id}; for(const[k,v] of Object.entries(row)){ const f=HDR_MAP[k.trim()]; if(!f) continue; if(f==='hire_date'||f==='birth_date') m[f]=parseExcelDate(v); else m[f]=v==null?null:String(v).trim(); } return m; }).filter(r=>r.employee_id&&r.name);
     if(!records.length) throw new Error('유효 레코드 없음');
     const empIds=records.map(r=>r.employee_id);
