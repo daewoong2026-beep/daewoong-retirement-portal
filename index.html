@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>대웅제약 · HR 포털</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" />
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -167,208 +168,285 @@ function renderLogin() {
   appMode = null;
   root.innerHTML = `
     <style>
-      .dw-wrap {
+      @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
+
+      .lg-page {
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #EEF2F7;
+        background: #F2F4FF;
         padding: 24px;
+        font-family: 'Nanum Gothic', 'Pretendard Variable', sans-serif;
       }
-      .dw-card {
+      .lg-card {
         width: 100%;
-        max-width: 920px;
+        max-width: 900px;
         min-height: 560px;
         display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        border-radius: 16px;
+        grid-template-columns: 1fr 1fr;
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 20px 60px rgba(10,30,80,0.18), 0 2px 8px rgba(10,30,80,0.08);
+        box-shadow: 0 32px 80px rgba(79,70,229,0.18), 0 4px 16px rgba(0,0,0,0.06);
       }
-      /* ── 왼쪽 브랜드 패널 ── */
-      .dw-left {
+
+      /* ── 왼쪽 ── */
+      .lg-left {
         position: relative;
-        background: linear-gradient(145deg, #0C2048 0%, #163772 55%, #0D4E8A 100%);
-        padding: 56px 48px;
+        background: linear-gradient(145deg, #1e1b4b 0%, #312e81 55%, #4338ca 100%);
+        padding: 52px 44px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         overflow: hidden;
       }
-      .dw-left::before {
-        content: "";
+      .lg-left .deco1 {
         position: absolute;
-        top: -80px; right: -80px;
-        width: 360px; height: 360px;
+        top: -90px; right: -90px;
+        width: 340px; height: 340px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.04);
+        background: rgba(165,180,252,0.1);
         pointer-events: none;
       }
-      .dw-left::after {
-        content: "";
+      .lg-left .deco2 {
         position: absolute;
-        bottom: -40px; right: -40px;
-        width: 220px; height: 220px;
-        background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1.5px, transparent 1.5px);
-        background-size: 20px 20px;
+        bottom: -60px; left: -60px;
+        width: 240px; height: 240px;
+        border-radius: 50%;
+        border: 48px solid rgba(165,180,252,0.07);
         pointer-events: none;
       }
-      .dw-emblem {
-        width: 44px; height: 44px;
-        border-radius: 12px;
+      .lg-left .deco3 {
+        position: absolute;
+        bottom: 80px; right: 30px;
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: rgba(129,140,248,0.12);
+        pointer-events: none;
+      }
+      .lg-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+      }
+      .lg-logo-pill {
         background: rgba(255,255,255,0.12);
-        border: 1.5px solid rgba(255,255,255,0.2);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 18px; font-weight: 800; color: #fff;
-        letter-spacing: -0.03em;
-      }
-      .dw-brand-name {
-        margin-top: 10px;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.5);
-      }
-      .dw-left-title {
-        font-size: 30px;
-        font-weight: 700;
+        border: 1.5px solid rgba(255,255,255,0.18);
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: 14px;
+        font-weight: 800;
         color: #fff;
-        line-height: 1.3;
-        margin: 0;
+        letter-spacing: 0.05em;
       }
-      .dw-left-title strong {
-        display: block;
-        color: #7DD3FC;
-        font-size: 32px;
-      }
-      .dw-left-desc {
-        font-size: 13px;
-        color: rgba(255,255,255,0.45);
-        line-height: 1.75;
-        margin-top: 14px;
-      }
-      .dw-left-footer {
+      .lg-logo-sub {
         font-size: 11px;
-        color: rgba(255,255,255,0.2);
+        font-weight: 700;
+        color: rgba(255,255,255,0.4);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
       }
-      /* ── 오른쪽 폼 패널 ── */
-      .dw-right {
-        background: #fff;
-        padding: 56px 48px;
+      .lg-copy {
+        position: relative;
+        z-index: 1;
+      }
+      .lg-copy h2 {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.35;
+        margin: 0 0 12px;
+        word-break: keep-all;
+      }
+      .lg-copy h2 span {
+        color: #a5b4fc;
+      }
+      .lg-copy p {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+        line-height: 1.8;
+      }
+      .lg-tag {
+        display: inline-block;
+        background: rgba(165,180,252,0.15);
+        color: #c7d2fe;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 14px;
+        letter-spacing: 0.08em;
+      }
+      .lg-footer {
+        font-size: 11px;
+        color: rgba(255,255,255,0.18);
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── 오른쪽 ── */
+      .lg-right {
+        background: #ffffff;
+        padding: 52px 44px;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
-      .dw-badge {
+      .lg-badge {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
         font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        padding: 4px 12px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        padding: 5px 13px;
         border-radius: 20px;
-        margin-bottom: 24px;
-        transition: background 0.2s, color 0.2s;
+        margin-bottom: 22px;
+        transition: all 0.2s;
       }
-      .dw-badge.emp   { background: #EFF6FF; color: #1D4ED8; }
-      .dw-badge.admin { background: #F0FDF4; color: #15803D; }
-      .dw-badge .dot {
+      .lg-badge .dot {
         width: 6px; height: 6px;
         border-radius: 50%;
         background: currentColor;
+        flex-shrink: 0;
       }
-      .dw-right h3 {
-        font-size: 22px; font-weight: 700; color: #0F172A;
+      .lg-badge.emp   { background: #EEF2FF; color: #4338CA; }
+      .lg-badge.admin { background: #F0FDF4; color: #059669; }
+
+      .lg-right h3 {
+        font-family: 'Nanum Gothic', sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e1b4b;
         margin: 0 0 6px;
       }
-      .dw-right .dw-sub {
-        font-size: 13px; color: #94A3B8;
-        line-height: 1.65; margin-bottom: 32px;
+      .lg-right .sub {
+        font-size: 13px;
+        color: #94A3B8;
+        line-height: 1.7;
+        margin-bottom: 30px;
+        word-break: keep-all;
       }
-      .dw-lbl {
-        display: block; font-size: 12px; font-weight: 600;
-        color: #475569; margin-bottom: 7px;
+      .lg-fld { margin-bottom: 14px; }
+      .lg-lbl {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #4B5563;
+        margin-bottom: 7px;
+        letter-spacing: 0.02em;
       }
-      .dw-inp {
-        width: 100%; height: 46px; padding: 0 14px;
-        border: 1.5px solid #E2E8F0;
+      .lg-inp {
+        width: 100%;
+        height: 48px;
+        padding: 0 16px;
+        border: 1.5px solid #E5E7EB;
         border-radius: 10px;
-        font-size: 14px; font-family: inherit; color: #0F172A;
-        outline: none; box-sizing: border-box;
-        transition: border-color 0.15s, box-shadow 0.15s;
-        background: #FAFBFC;
+        font-size: 14px;
+        font-family: 'Nanum Gothic', sans-serif;
+        color: #1e1b4b;
+        background: #FAFAFA;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
       }
-      .dw-inp:focus {
-        border-color: #2563EB;
-        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      .lg-inp:focus {
+        border-color: #6366f1;
         background: #fff;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
       }
-      .dw-hint { font-size: 11px; color: #94A3B8; margin-top: 5px; }
-      .dw-fld  { margin-bottom: 16px; }
-      .dw-err  {
-        display: none; font-size: 13px; color: #DC2626;
-        background: #FEF2F2; border: 1px solid #FECACA;
-        border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;
+      .lg-hint { font-size: 11px; color: #94A3B8; margin-top: 5px; }
+      .lg-err {
+        display: none;
+        font-size: 12px;
+        font-weight: 700;
+        color: #DC2626;
+        background: #FEF2F2;
+        border: 1px solid #FECACA;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
       }
-      .dw-err.on { display: block; }
-      .dw-submit {
-        width: 100%; height: 48px;
-        background: #1D4ED8;
-        color: #fff; border: none; border-radius: 10px;
-        font-size: 15px; font-weight: 700; font-family: inherit;
-        cursor: pointer; letter-spacing: 0.03em;
-        transition: background 0.15s, transform 0.1s;
+      .lg-err.on { display: block; }
+      .lg-btn {
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-family: 'Nanum Gothic', sans-serif;
+        font-weight: 800;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+        transition: opacity 0.15s, transform 0.1s;
+        box-shadow: 0 4px 14px rgba(99,102,241,0.35);
       }
-      .dw-submit:hover  { background: #1E40AF; }
-      .dw-submit:active { transform: scale(0.99); }
-      .dw-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-      @media (max-width: 660px) {
-        .dw-card   { grid-template-columns: 1fr; }
-        .dw-left   { min-height: 180px; padding: 36px 32px; }
-        .dw-right  { padding: 40px 32px; }
-        .dw-left-title { font-size: 22px; }
-        .dw-left-title strong { font-size: 24px; }
-        .dw-left::before { display: none; }
+      .lg-btn:hover   { opacity: 0.92; }
+      .lg-btn:active  { transform: scale(0.99); }
+      .lg-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+      @media (max-width: 640px) {
+        .lg-card  { grid-template-columns: 1fr; }
+        .lg-left  { min-height: 180px; padding: 36px 32px; }
+        .lg-copy h2 { font-size: 22px; }
+        .lg-right { padding: 40px 28px; }
       }
     </style>
-    <div class="dw-wrap fade-in">
-      <div class="dw-card">
-        <div class="dw-left">
-          <div>
-            <div class="dw-emblem">DW</div>
-            <div class="dw-brand-name">Daewoong Pharmaceutical</div>
+
+    <div class="lg-page fade-in">
+      <div class="lg-card">
+
+        <!-- 왼쪽 브랜드 패널 -->
+        <div class="lg-left">
+          <div class="deco1"></div>
+          <div class="deco2"></div>
+          <div class="deco3"></div>
+
+          <div class="lg-logo">
+            <div class="lg-logo-pill">DW</div>
+            <span class="lg-logo-sub">Daewoong HR</span>
           </div>
-          <div>
-            <h2 class="dw-left-title">HR 통합<strong>퇴직 관리 포털</strong></h2>
-            <p class="dw-left-desc">퇴직 접수부터 후임 인재 추천까지<br/>인사 업무를 하나의 화면에서 처리하세요.</p>
+
+          <div class="lg-copy">
+            <div class="lg-tag">HR Management Portal</div>
+            <h2>인재를 잇는<br/><span>스마트 HR 플랫폼</span></h2>
+            <p>퇴직 접수부터 후임 추천까지<br/>대웅제약 인사 업무의 모든 것</p>
           </div>
-          <span class="dw-left-footer">© 2026 Daewoong Pharmaceutical · HR Division</span>
+
+          <span class="lg-footer">© 2026 Daewoong Pharmaceutical</span>
         </div>
-        <div class="dw-right">
-          <div id="dwBadge" class="dw-badge emp"><span class="dot"></span>직원</div>
-          <h3>로그인</h3>
-          <p class="dw-sub">숫자(사번)를 입력하면 직원,<br/>영문 아이디를 입력하면 관리자로 연결됩니다.</p>
+
+        <!-- 오른쪽 폼 패널 -->
+        <div class="lg-right">
+          <div id="dwBadge" class="lg-badge emp"><span class="dot"></span>직원 로그인</div>
+          <h3>안녕하세요 👋</h3>
+          <p class="sub">숫자(사번)를 입력하면 직원,<br/>영문 아이디 입력 시 관리자로 연결됩니다.</p>
+
           <form id="smartLoginForm" autocomplete="off">
-            <div class="dw-fld">
-              <label class="dw-lbl" id="f1Label">사번 또는 아이디</label>
-              <input class="dw-inp" id="field1" name="field1" type="text" required
+            <div class="lg-fld">
+              <label class="lg-lbl" id="f1Label">사번 또는 아이디</label>
+              <input class="lg-inp" id="field1" name="field1" type="text" required
                 placeholder="20231234  또는  admin" autocomplete="username" />
             </div>
-            <div class="dw-fld">
-              <label class="dw-lbl" id="f2Label">이름</label>
-              <input class="dw-inp" id="field2" name="field2" type="text" required
+            <div class="lg-fld">
+              <label class="lg-lbl" id="f2Label">이름</label>
+              <input class="lg-inp" id="field2" name="field2" type="text" required
                 placeholder="홍길동" autocomplete="off" />
-              <p class="dw-hint" id="f2Hint">직원명부에 등록된 이름을 입력해 주세요.</p>
+              <p class="lg-hint" id="f2Hint">직원명부에 등록된 이름을 입력하세요.</p>
             </div>
-            <div class="dw-err" id="loginErr"></div>
-            <button type="submit" class="dw-submit" id="loginBtn">로그인</button>
+            <div class="lg-err" id="loginErr"></div>
+            <button type="submit" class="lg-btn" id="loginBtn">로그인</button>
           </form>
-          <p style="margin-top:18px;font-size:11px;color:#CBD5E1;text-align:center;">
-            문의: hr@daewoong.co.kr · 내선 1234
+
+          <p style="margin-top:20px;font-size:11px;color:#CBD5E1;text-align:center;">
+            문의 hr@daewoong.co.kr &nbsp;·&nbsp; 내선 1234
           </p>
         </div>
+
       </div>
     </div>
   `;
@@ -391,15 +469,15 @@ function bindSmartLogin() {
       field2.type = 'password';
       field2.placeholder = '비밀번호를 입력해 주세요.';
       f2Hint.textContent = '관리자(HR 담당자) 계정으로 로그인합니다.';
-      badge.innerHTML = '<span class="dot"></span>관리자';
-      badge.className = 'dw-badge admin';
+      badge.innerHTML = '<span class="dot"></span>관리자 로그인';
+      badge.className = 'lg-badge admin';
     } else {
       f2Label.textContent = '이름';
       field2.type = 'text';
       field2.placeholder = '홍길동';
       f2Hint.textContent = '직원명부에 등록된 이름을 입력해 주세요.';
-      badge.innerHTML = '<span class="dot"></span>직원';
-      badge.className = 'dw-badge emp';
+      badge.innerHTML = '<span class="dot"></span>직원 로그인';
+      badge.className = 'lg-badge emp';
     }
   }
 
@@ -442,8 +520,8 @@ function bindSmartLogin() {
         renderPortal();
       }
     } catch (e2) {
-      err.textContent = e2.message || '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-      err.classList.add('on');
+      document.getElementById('loginErr').textContent = e2.message || '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      document.getElementById('loginErr').classList.add('on');
     } finally {
       btn.disabled = false; btn.textContent = '로그인';
     }
