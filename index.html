@@ -574,46 +574,105 @@ function empHeader(backHash, backLabel) {
   `;
 }
 
-function renderPortal() {
+async function renderPortal() {
   const identity = getEmpIdentity();
   if (!identity) { renderLogin(); return; }
   window.location.hash = '#/portal';
 
+  const submitCard = `
+    <button onclick="renderSubmit()" class="group text-left bg-ink-900 rounded-xl2 border border-ink-900 shadow-card p-8 hover:shadow-lg transition text-white">
+      <div class="w-12 h-12 rounded-xl bg-white/10 text-white grid place-items-center mb-6">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      </div>
+      <h2 class="text-xl font-semibold">퇴직 접수하기</h2>
+      <p class="mt-2 text-sm text-ink-300 leading-relaxed">퇴사일, 근무마감일 등을 입력하고 퇴직 접수를 완료합니다.</p>
+      <div class="mt-8 text-sm font-medium text-white">접수 진행 →</div>
+    </button>`;
+  const guideCard = `
+    <button onclick="renderGuide()" class="group text-left bg-white rounded-xl2 border border-ink-100 shadow-card p-8 hover:border-brand/40 hover:shadow-lg transition">
+      <div class="w-12 h-12 rounded-xl bg-brand-soft text-brand grid place-items-center mb-6">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      </div>
+      <h2 class="text-xl font-semibold text-ink-900">퇴직 절차 안내 확인하기</h2>
+      <p class="mt-2 text-sm text-ink-500 leading-relaxed">퇴직 전 확인해야 할 절차, 서류, 일정을 안내드립니다.</p>
+      <div class="mt-8 text-sm font-medium text-brand">안내 보기 →</div>
+    </button>`;
+
   root.innerHTML = `
     ${empHeader()}
     <main class="max-w-6xl mx-auto px-6 py-14 fade-in">
-      <div class="mb-12">
+      <div class="mb-10">
         <p class="text-[13px] font-medium text-brand tracking-[0.2em] uppercase">Welcome</p>
         <h1 class="mt-2 text-3xl font-semibold text-ink-900">${esc(identity.name)}님, 안녕하세요.</h1>
         <p class="mt-2 text-ink-500 text-sm">원하시는 메뉴를 선택해 주세요.</p>
       </div>
-
-      <div class="grid md:grid-cols-2 gap-6">
-        <button onclick="renderGuide()" class="group text-left bg-white rounded-xl2 border border-ink-100 shadow-card p-8 hover:border-brand/40 hover:shadow-lg transition">
-          <div class="w-12 h-12 rounded-xl bg-brand-soft text-brand grid place-items-center mb-6">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-          </div>
-          <h2 class="text-xl font-semibold text-ink-900">퇴직 절차 안내 확인하기</h2>
-          <p class="mt-2 text-sm text-ink-500 leading-relaxed">퇴직 전 확인해야 할 절차, 서류, 일정을 안내드립니다.</p>
-          <div class="mt-8 text-sm font-medium text-brand">안내 보기 →</div>
-        </button>
-
-        <button onclick="renderSubmit()" class="group text-left bg-ink-900 rounded-xl2 border border-ink-900 shadow-card p-8 hover:shadow-lg transition text-white">
-          <div class="w-12 h-12 rounded-xl bg-white/10 text-white grid place-items-center mb-6">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </div>
-          <h2 class="text-xl font-semibold">퇴직 접수하기</h2>
-          <p class="mt-2 text-sm text-ink-300 leading-relaxed">퇴사일, 근무마감일 등을 입력하고 퇴직 접수를 완료합니다.</p>
-          <div class="mt-8 text-sm font-medium text-white">접수 진행 →</div>
-        </button>
+      <div id="portalCards">
+        <div class="flex items-center gap-3 text-sm text-ink-400"><div class="w-4 h-4 rounded-full border-2 border-ink-200 border-t-brand animate-spin"></div>확인 중...</div>
       </div>
-
       <div class="mt-10 bg-white border border-ink-100 rounded-xl2 p-5 text-sm text-ink-500">
         <span class="font-medium text-ink-700">도움이 필요하신가요?</span>
         &nbsp;인사팀 hr@daewoong.co.kr · 내선 1234
       </div>
     </main>
   `;
+
+  const { data } = await sbAdmin.from('resignation_requests')
+    .select('id,resignation_date,created_at,is_cancelled,cancelled_at,cancelled_by,cancel_reason')
+    .eq('employee_id', identity.employee_id)
+    .order('created_at', {ascending:false}).limit(1);
+
+  const el = document.getElementById('portalCards');
+  if (!el) return;
+  const ex = data && data[0];
+
+  if (ex && !ex.is_cancelled) {
+    el.innerHTML = `
+      <div class="mb-6 bg-amber-50 border border-amber-200 rounded-xl2 p-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-200 text-amber-900">접수 완료</span>
+              <span class="text-sm font-medium text-amber-800">퇴직이 접수된 상태입니다</span>
+            </div>
+            <div class="text-sm text-amber-700">퇴사일: <strong>${formatDate(ex.resignation_date)}</strong> &nbsp;·&nbsp; 접수일: ${formatDate(ex.created_at)}</div>
+            <div class="text-xs text-amber-600 mt-1">인사팀에서 절차를 진행 중입니다.</div>
+          </div>
+          <button onclick="cancelMyResignation('${ex.id}')"
+            class="h-10 px-5 bg-white border border-red-300 text-red-600 font-medium text-sm rounded-lg hover:bg-red-50 transition">
+            퇴직 취소 신청
+          </button>
+        </div>
+      </div>
+      <div class="grid md:grid-cols-1 gap-6">${guideCard}</div>`;
+  } else if (ex && ex.is_cancelled) {
+    el.innerHTML = `
+      <div class="mb-6 bg-gray-50 border border-gray-200 rounded-xl2 p-5">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-600">취소됨</span>
+          <span class="text-sm text-gray-600">이전 퇴직 접수가 취소 처리되었습니다</span>
+        </div>
+        <div class="text-xs text-gray-400">취소일: ${formatDate(ex.cancelled_at)} &nbsp;·&nbsp; 처리: ${esc(ex.cancelled_by||'-')}</div>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">${guideCard}${submitCard}</div>`;
+  } else {
+    el.innerHTML = `<div class="grid md:grid-cols-2 gap-6">${guideCard}${submitCard}</div>`;
+  }
+}
+
+async function cancelMyResignation(id) {
+  const reason = prompt('취소 사유를 입력해 주세요 (선택사항):');
+  if (reason === null) return;
+  if (!confirm('정말로 퇴직 접수를 취소하시겠습니까?\n취소 후에도 재접수가 가능합니다.')) return;
+  const identity = getEmpIdentity();
+  const { error } = await sbAdmin.from('resignation_requests').update({
+    is_cancelled: true,
+    cancelled_at: new Date().toISOString(),
+    cancelled_by: (identity?.name||'본인') + ' (본인 취소)',
+    cancel_reason: reason || null
+  }).eq('id', id);
+  if (error) { alert('처리 중 오류가 발생했습니다: ' + error.message); return; }
+  alert('퇴직 취소가 처리되었습니다.\n인사팀에서 확인 후 별도 안내드릴 예정입니다.');
+  renderPortal();
 }
 
 function renderGuide() {
@@ -962,15 +1021,17 @@ async function renderDashboard() {
   const { data } = await sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}).limit(2000);
   const list = data || [];
   const now = new Date(); const Y = now.getFullYear(); const M = now.getMonth();
-  const total = list.length;
-  const thisYear  = list.filter(r => r.resignation_date && new Date(r.resignation_date).getFullYear()===Y).length;
-  const thisMonth = list.filter(r => { if (!r.resignation_date) return false; const d=new Date(r.resignation_date); return d.getFullYear()===Y&&d.getMonth()===M; }).length;
-  const lastMonth = list.filter(r => { if (!r.resignation_date) return false; const d=new Date(r.resignation_date); const lm=new Date(Y,M-1,1); return d.getFullYear()===lm.getFullYear()&&d.getMonth()===lm.getMonth(); }).length;
-  const incomplete = list.filter(r => !r.completion_status).length;
-  const d5 = list.filter(r => r.is_d5_warning).length;
-  const sapTodo = list.filter(r => !r.sap_posted).length;
-  const letterTodo = list.filter(r => !r.resignation_letter_submitted).length;
-  const tenures = list.map(r => r.tenure_months).filter(v => v != null);
+  const cancelled = list.filter(r => r.is_cancelled).length;
+  const activeList = list.filter(r => !r.is_cancelled);
+  const total = activeList.length;
+  const thisYear  = activeList.filter(r => r.resignation_date && new Date(r.resignation_date).getFullYear()===Y).length;
+  const thisMonth = activeList.filter(r => { if (!r.resignation_date) return false; const d=new Date(r.resignation_date); return d.getFullYear()===Y&&d.getMonth()===M; }).length;
+  const lastMonth = activeList.filter(r => { if (!r.resignation_date) return false; const d=new Date(r.resignation_date); const lm=new Date(Y,M-1,1); return d.getFullYear()===lm.getFullYear()&&d.getMonth()===lm.getMonth(); }).length;
+  const incomplete = activeList.filter(r => !r.completion_status).length;
+  const d5 = activeList.filter(r => r.is_d5_warning).length;
+  const sapTodo = activeList.filter(r => !r.sap_posted).length;
+  const letterTodo = activeList.filter(r => !r.resignation_letter_submitted).length;
+  const tenures = activeList.map(r => r.tenure_months).filter(v => v != null);
   const avgTenure = tenures.length ? Math.round(tenures.reduce((a,b)=>a+b,0)/tenures.length) : 0;
 
   const monthlyMap = new Map();
@@ -978,7 +1039,7 @@ async function renderDashboard() {
   list.forEach(r => { if (!r.resignation_date) return; const d=new Date(r.resignation_date); const k=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`; if(monthlyMap.has(k)) monthlyMap.set(k,monthlyMap.get(k)+1); });
   const groupBy = f => { const m=new Map(); list.forEach(r=>{ const k=r[f]||'(미지정)'; m.set(k,(m.get(k)||0)+1); }); return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).slice(0,6); };
 
-  const insights = generateInsights(list, Y, M);
+  const insights = generateInsights(activeList, Y, M);
   const momChg = lastMonth > 0 ? ((thisMonth-lastMonth)/lastMonth*100).toFixed(0) : null;
   const levelStyle = { urgent:'background:#FEF2F2;border-color:#FCA5A5;color:#991B1B', warn:'background:#FFFBEB;border-color:#FCD34D;color:#92400E', good:'background:#F0FDF4;border-color:#86EFAC;color:#166534', info:'background:#EFF6FF;border-color:#93C5FD;color:#1E40AF' };
 
@@ -995,7 +1056,7 @@ async function renderDashboard() {
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
     .ai-items { display:flex; flex-direction:column; gap:4px; }
     .ai-item { display:flex; align-items:flex-start; gap:8px; padding:6px 10px; border-radius:8px; border:1px solid transparent; font-size:12px; line-height:1.5; }
-    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
     .kpi-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:12px; padding:12px 16px; position:relative; overflow:hidden; }
     .kpi-card::after { content:''; position:absolute; top:0;right:0; width:60px;height:60px; border-radius:0 12px 0 60px; }
     .kpi-card.c-purple::after { background:rgba(99,102,241,0.06); }
@@ -1053,9 +1114,14 @@ async function renderDashboard() {
       </div>
       <div class="kpi-card ${incomplete>0?'c-amber':'c-green'}">
         <div class="kpi-lbl">처리 현황</div>
-        <div><span class="kpi-val">${list.length - incomplete}</span><span class="kpi-unit"> / ${list.length}</span></div>
-        <div class="kpi-sub">완료율 ${list.length?Math.round((list.length-incomplete)/list.length*100):0}%</div>
+        <div><span class="kpi-val">${total - incomplete}</span><span class="kpi-unit"> / ${total}</span></div>
+        <div class="kpi-sub">완료율 ${total?Math.round((total-incomplete)/total*100):0}%</div>
       </div>
+      ${cancelled>0?`<div class="kpi-card" style="border-color:#E5E7EB;">
+        <div class="kpi-lbl" style="color:#9CA3AF;">취소됨</div>
+        <div><span class="kpi-val" style="color:#6B7280;">${cancelled}</span><span class="kpi-unit">건</span></div>
+        <div class="kpi-sub">퇴직 취소 접수</div>
+      </div>`:''}
     </div>
 
     <!-- 경고 알림 카드 -->
@@ -1130,7 +1196,7 @@ async function renderResignations() {
           ${selHtml('fDiv','전체 본부',divisions)}
           ${selHtml('fCtr','전체 센터',centers)}
           ${selHtml('fTeam','전체 팀',teams)}
-          ${selHtml('fSt','전체 상태',['완료','미완료'])}
+          ${selHtml('fSt','전체 상태',['완료','미완료','취소됨'])}
           <span id="cntBox" style="margin-left:auto;font-size:13px;color:#6B7280;"></span>
         </div>
       </div>
@@ -1177,7 +1243,9 @@ function getFilteredResig() {
     if(div&&(r.division||'')!==div) return false;
     if(ctr&&(r.center||'')!==ctr) return false;
     if(tm&&(r.team||'')!==tm) return false;
-    if(st&&r.status_label!==st) return false;
+    if(st==='취소됨'){ if(!r.is_cancelled) return false; }
+    else if(st){ if(r.is_cancelled) return false; if(r.status_label!==st) return false; }
+    else { if(r.is_cancelled) return false; }
     if(q){ const h=`${r.name||''} ${r.employee_id||''} ${r.division||''} ${r.center||''} ${r.team||''}`.toLowerCase(); if(!h.includes(q)) return false; }
     return true;
   });
@@ -1213,11 +1281,24 @@ function renderResigBody() {
   if(!filtered.length){ body.innerHTML=`<tr><td colspan="14" style="text-align:center;padding:48px;color:#9CA3AF;font-size:14px;">조건에 맞는 데이터가 없습니다.</td></tr>`; return; }
   body.innerHTML = filtered.map(r=>{
     const comments = parseComments(r.note);
+    const isCancelled = !!r.is_cancelled;
+    const rowStyle = isCancelled
+      ? 'border-bottom:1px solid #F3F4F6;background:#FAFAFA;opacity:0.65;'
+      : 'border-bottom:1px solid #F3F4F6;transition:background .12s;';
+    const rowHover = isCancelled ? '' : `onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background=''"`;
     return `
-    <tr style="border-bottom:1px solid #F3F4F6;transition:background .12s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background=''">
+    <tr style="${rowStyle}" ${rowHover}>
       <td style="padding:13px 16px;white-space:nowrap;">
-        <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;${r.completion_status?'background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;':'background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;'}">
-          ${r.completion_status?'완료':'미완료'}</span>
+        ${isCancelled
+          ? `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;">취소됨</span>`
+          : `<div style="display:flex;align-items:center;gap:6px;">
+              <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;${r.completion_status?'background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;':'background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;'}">
+                ${r.completion_status?'완료':'미완료'}</span>
+              <button onclick="adminCancelResignation('${r.id}')" title="취소 처리"
+                style="font-size:10px;color:#9CA3AF;background:none;border:1px solid #E5E7EB;border-radius:5px;padding:2px 6px;cursor:pointer;white-space:nowrap;"
+                onmouseover="this.style.color='#DC2626';this.style.borderColor='#FCA5A5';"
+                onmouseout="this.style.color='#9CA3AF';this.style.borderColor='#E5E7EB';">취소</button>
+            </div>`}
       </td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.employee_id)}</td>
       <td style="padding:13px 16px;white-space:nowrap;font-weight:600;color:#111827;font-size:13px;">${esc(r.name)}</td>
@@ -1384,6 +1465,24 @@ async function toggleTask(id, field, curr) {
   }
   renderResigBody();
 }
+async function adminCancelResignation(id) {
+  const row = adminRows.find(r=>r.id===id);
+  if(!row) return;
+  const reason = prompt(`[${row.name}] 퇴직 취소 사유를 입력해 주세요 (선택사항):`);
+  if(reason === null) return;
+  if(!confirm(`${row.name}님의 퇴직 접수를 취소 처리하시겠습니까?`)) return;
+  const { error } = await sbAdmin.from('resignation_requests').update({
+    is_cancelled: true,
+    cancelled_at: new Date().toISOString(),
+    cancelled_by: adminUser?.email || 'admin',
+    cancel_reason: reason || null
+  }).eq('id', id);
+  if(error){ alert('실패: '+error.message); return; }
+  const idx = adminRows.findIndex(r=>r.id===id);
+  if(idx>=0) Object.assign(adminRows[idx], {is_cancelled:true, status_label:'취소됨'});
+  renderResigBody();
+}
+
 function exportResig() {
   const rows = getFilteredResig();
   const data = rows.map(r=>({ 사번:r.employee_id,이름:r.name,회사명:r.company_name,본부:r.division,센터:r.center,팀:r.team,퇴사일:formatDate(r.resignation_date),근무마감:formatDate(r.last_working_date),계정마감:formatDate(r.account_closing_date),재직개월:r.tenure_months,비고:r.note,계정삭제:r.account_deleted?'완료':'미완료',사직원:r.resignation_letter_submitted?'완료':'미완료',SAP:r.sap_posted?'완료':'미완료',상태:r.status_label,등록:formatDateTime(r.created_at) }));
@@ -1400,7 +1499,7 @@ async function renderAlerts() {
     sbGeo.from('position_connections').select('*').eq('status','pending').order('created_at',{ascending:false})
   ]);
   const list = data||[], today=new Date();
-  const d5=list.filter(r=>r.is_d5_warning), incomp=list.filter(r=>!r.completion_status&&!r.is_d5_warning);
+  const d5=list.filter(r=>r.is_d5_warning&&!r.is_cancelled), incomp=list.filter(r=>!r.completion_status&&!r.is_d5_warning&&!r.is_cancelled);
   const conns = pendingConns||[];
 
   // 탭 렌더링 함수
