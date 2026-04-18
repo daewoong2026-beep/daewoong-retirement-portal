@@ -51,6 +51,26 @@
   </div>
 </div>
 
+<!-- 거현량 연결 희망자 모달 -->
+<div id="connModal" class="hidden fixed inset-0 bg-ink-900/50 z-50 flex items-start justify-center px-4 py-10 overflow-y-auto">
+  <div class="bg-white rounded-xl2 shadow-card w-full max-w-2xl fade-in">
+    <div class="px-6 pt-6 pb-4 border-b border-ink-100 flex items-start justify-between gap-4">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#6366f1;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">거현량 연동 · 연결 희망자</div>
+        <h2 class="text-base font-semibold text-ink-900" id="connModalTitle">연결 희망자 목록</h2>
+        <p class="mt-0.5 text-xs text-ink-500" id="connModalSub"></p>
+      </div>
+      <button onclick="closeConnModal()" class="shrink-0 w-8 h-8 rounded-lg hover:bg-ink-100 flex items-center justify-center text-ink-500 transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="connResults" class="px-6 py-5 space-y-3 max-h-[540px] overflow-y-auto"></div>
+    <div class="px-6 pb-5 pt-2 flex justify-end border-t border-ink-50">
+      <button onclick="closeConnModal()" class="h-9 px-4 border border-ink-200 hover:bg-ink-50 rounded-lg text-sm text-ink-700 transition">닫기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 거현량 후임추천 모달 -->
 <div id="recoModal" class="hidden fixed inset-0 bg-ink-900/50 z-50 flex items-start justify-center px-4 py-10 overflow-y-auto">
   <div class="bg-white rounded-xl2 shadow-card w-full max-w-2xl fade-in">
@@ -758,6 +778,15 @@ function renderSubmitForm(identity) {
         note: fd.get('note') || null,
       });
       if (error) throw error;
+      // 거현량 연동: 열린 포지션 자동 생성
+      await sbGeo.from('open_positions').insert({
+        company_name: emp.company_name || '대웅제약',
+        division: emp.division || '',
+        center: emp.center || '',
+        team: emp.team || '',
+        position_title: [emp.division, emp.center, emp.team].filter(Boolean).join(' > '),
+        is_active: true,
+      });
       document.getElementById('doneModal').classList.remove('hidden');
     } catch (err) {
       errBox.textContent = '접수 실패: ' + (err.message || '오류'); errBox.classList.remove('hidden');
@@ -1124,11 +1153,17 @@ function renderResigBody() {
       <td class="px-3 py-2.5 text-center">${chkBtn(r.id,'sap_posted',r.sap_posted)}</td>
       <td class="px-3 py-2.5 text-ink-500 tabular-nums">${formatDateTime(r.created_at)}</td>
       <td class="px-3 py-2.5 text-center">
-        <button onclick="openRecoModal('${r.id}')"
-          style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:11px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;font-family:'Nanum Gothic',sans-serif;">
-          <svg style="width:12px;height:12px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-          거현량 추천
-        </button>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:center;">
+          <button onclick="openConnModal(adminRows.find(x=>x.id==='${r.id}'))"
+            style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:11px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;font-family:'Nanum Gothic',sans-serif;">
+            <svg style="width:11px;height:11px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+            연결 희망자
+          </button>
+          <button onclick="openRecoModal('${r.id}')"
+            style="display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:6px;background:#F1F5F9;color:#475569;font-size:10px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
+            AI 추천
+          </button>
+        </div>
       </td>
     </tr>`).join('');
 }
@@ -1312,6 +1347,86 @@ async function revokeRole(id) {
 // ============================================================
 // 거현량 후임추천 연동
 // ============================================================
+// ============================================================
+// 거현량 연결 희망자 모달
+// ============================================================
+async function openConnModal(row) {
+  document.getElementById('connModalTitle').textContent = `${esc(row.name)} 포지션 연결 희망자`;
+  document.getElementById('connModalSub').textContent = [row.division, row.center, row.team].filter(Boolean).join(' > ') + ' · 퇴사일 ' + formatDate(row.resignation_date);
+  document.getElementById('connModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  const el = document.getElementById('connResults');
+  el.innerHTML = `<div class="text-sm text-ink-400 py-4 text-center">조회 중...</div>`;
+
+  // 포지션 찾기 (division+team 기준)
+  const { data: positions } = await sbGeo.from('open_positions')
+    .select('id')
+    .eq('division', row.division || '')
+    .eq('team', row.team || '')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (!positions || positions.length === 0) {
+    el.innerHTML = `<div class="text-center py-10 text-ink-400 text-sm">
+      <div style="font-size:32px;margin-bottom:8px;">📭</div>
+      아직 거현량 사이트에서 연결 희망한 인원이 없습니다.<br/>
+      <span class="text-xs mt-2 block">거현량 사이트에서 해당 포지션이 등록되면 이곳에 표시됩니다.</span>
+    </div>`;
+    return;
+  }
+
+  const posIds = positions.map(p => p.id);
+  const { data: conns } = await sbGeo.from('position_connections')
+    .select('*')
+    .in('position_id', posIds)
+    .order('created_at', { ascending: false });
+
+  if (!conns || conns.length === 0) {
+    el.innerHTML = `<div class="text-center py-10 text-ink-400 text-sm">
+      <div style="font-size:32px;margin-bottom:8px;">📭</div>
+      아직 연결 희망자가 없습니다.
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="text-xs text-ink-500 mb-3">총 ${conns.length}명이 연결을 희망했습니다.</div>
+    ${conns.map(c => `
+      <div style="border:1.5px solid #E8EAF6;border-radius:12px;padding:16px;background:#fff;margin-bottom:8px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+              <span style="font-size:15px;font-weight:800;color:#1e1b4b;">${esc(c.expert_name || '이름 미제공')}</span>
+              <span style="font-size:11px;background:#EEF2FF;color:#4f46e5;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
+            </div>
+            <div style="font-size:12px;color:#6B7280;">${esc(c.expert_org || '')}${c.expert_title ? ' · ' + esc(c.expert_title) : ''}</div>
+            ${c.expert_summary ? `<div style="margin-top:8px;font-size:13px;color:#374151;line-height:1.6;padding:10px;background:#F8FAFF;border-radius:8px;">${esc(c.expert_summary)}</div>` : ''}
+            ${c.message ? `<div style="margin-top:6px;font-size:12px;color:#6366f1;font-style:italic;">"${esc(c.message)}"</div>` : ''}
+          </div>
+          <div style="text-right;flex-shrink:0;">
+            <div style="font-size:11px;color:#94A3B8;">${formatDate(c.created_at)}</div>
+            <select onchange="updateConnStatus('${c.id}', this.value)" style="margin-top:6px;font-size:11px;border:1px solid #E5E7EB;border-radius:6px;padding:3px 6px;color:#374151;">
+              <option value="pending" ${c.status==='pending'?'selected':''}>검토중</option>
+              <option value="accepted" ${c.status==='accepted'?'selected':''}>수락</option>
+              <option value="rejected" ${c.status==='rejected'?'selected':''}>거절</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+async function updateConnStatus(id, status) {
+  await sbGeo.from('position_connections').update({ status }).eq('id', id);
+}
+
+function closeConnModal() {
+  document.getElementById('connModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
 let _recoRow = null;
 
 function openRecoModal(id) {
