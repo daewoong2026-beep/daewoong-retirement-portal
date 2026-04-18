@@ -1477,7 +1477,7 @@ async function renderUpload() {
   const { count } = await sbAdmin.from('employees_master').select('*',{count:'exact',head:true});
   const { data: logs } = await sbAdmin.from('employee_upload_logs').select('*').order('uploaded_at',{ascending:false}).limit(20);
   main.innerHTML = `
-    <div class="p-8 max-w-4xl fade-in">
+    <div class="p-8 fade-in">
       <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">직원명부 업로드</h1><p class="mt-1 text-sm text-ink-500">월 1회 최신 명부를 업로드합니다. 사번 기준으로 upsert됩니다.</p></div>
       <div class="grid md:grid-cols-3 gap-4 mb-6">
         <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5"><div class="text-xs text-ink-500">현재 마스터 인원</div><div class="mt-1 text-2xl font-semibold text-ink-900 tabular-nums">${count||0} <span class="text-sm font-normal text-ink-500">명</span></div></div>
