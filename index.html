@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>대웅제약 · HR 포털</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { 900:'#0B1220', 800:'#111827', 700:'#1F2937', 600:'#374151', 500:'#6B7280', 400:'#9CA3AF', 300:'#D1D5DB', 200:'#E5E7EB', 100:'#F3F4F6', 50:'#F9FAFB' },
+          brand: { DEFAULT:'#1E40AF', light:'#3B82F6', soft:'#EFF4FF', hover:'#1E3A8A' },
+          accent: { gold:'#B59157', green:'#10B981', amber:'#F59E0B', red:'#EF4444' },
+        },
+        borderRadius: { xl2: '14px' },
+        boxShadow: {
+          soft: '0 1px 2px 0 rgba(0,0,0,0.04), 0 1px 3px 0 rgba(0,0,0,0.06)',
+          card: '0 4px 16px -4px rgba(15,23,42,0.08)',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif; letter-spacing: -0.01em; }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .fade-in { animation: fadeIn 0.25s ease-out; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body class="bg-ink-50 text-ink-800 min-h-screen">
+
+<div id="root"></div>
+
+<!-- 퇴직접수 완료 모달 -->
+<div id="doneModal" class="hidden fixed inset-0 bg-ink-900/40 grid place-items-center z-50 px-6">
+  <div class="bg-white rounded-xl2 shadow-card max-w-md w-full p-8 text-center fade-in">
+    <div class="w-16 h-16 rounded-full bg-accent-green/10 text-accent-green grid place-items-center mx-auto">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <h3 class="mt-6 text-xl font-semibold text-ink-900">퇴직접수가 완료되었습니다.</h3>
+    <p class="mt-2 text-sm text-ink-500 leading-relaxed">접수 내용은 인사팀에서 확인 후<br/>후속 절차를 안내드릴 예정입니다.</p>
+    <button onclick="closeDoneModal()" class="mt-8 w-full h-11 bg-brand hover:bg-brand-hover text-white font-medium rounded-lg transition">처음으로</button>
+  </div>
+</div>
+
+<!-- 거현량 후임추천 모달 -->
+<div id="recoModal" class="hidden fixed inset-0 bg-ink-900/50 z-50 flex items-start justify-center px-4 py-10 overflow-y-auto">
+  <div class="bg-white rounded-xl2 shadow-card w-full max-w-2xl fade-in">
+    <div class="px-6 pt-6 pb-4 border-b border-ink-100 flex items-start justify-between gap-4">
+      <div>
+        <div class="text-[11px] font-semibold text-brand tracking-[0.15em] uppercase mb-1">거현량 · 擧賢良</div>
+        <h2 class="text-base font-semibold text-ink-900" id="recoModalTitle">후임 인재 추천</h2>
+        <p class="mt-0.5 text-xs text-ink-500" id="recoModalSub"></p>
+      </div>
+      <button onclick="closeRecoModal()" class="shrink-0 w-8 h-8 rounded-lg hover:bg-ink-100 flex items-center justify-center text-ink-500 transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="px-6 py-4 bg-ink-50 border-b border-ink-100">
+      <label class="block text-xs font-semibold text-ink-600 mb-2">검색 키워드 <span class="font-normal text-ink-400">(부서·직무·역량 등 자유롭게 입력)</span></label>
+      <div class="flex gap-2">
+        <input id="recoKeywordInput" type="text" placeholder="예: 영업 마케팅 신약개발"
+          class="flex-1 h-10 px-3 rounded-lg border border-ink-200 text-sm focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none bg-white" />
+        <button onclick="runRecoSearch()" class="h-10 px-4 bg-brand hover:bg-brand-hover text-white rounded-lg text-sm font-medium transition">검색</button>
+      </div>
+    </div>
+    <div id="recoResults" class="px-6 py-5 space-y-3 max-h-[520px] overflow-y-auto"></div>
+    <div class="px-6 pb-5 pt-2 flex justify-end border-t border-ink-50">
+      <button onclick="closeRecoModal()" class="h-9 px-4 border border-ink-200 hover:bg-ink-50 rounded-lg text-sm text-ink-700 transition">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+// ============================================================
+// 클라이언트 초기화
+// ============================================================
+const sb    = createSupabaseClient();                                             // retirement 스키마
+const sbGeo = sb ? supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey) : null; // public 스키마 (거현량)
+
+const root = document.getElementById('root');
+
+// ============================================================
+// 앱 상태
+// ============================================================
+let appMode     = null;   // 'employee' | 'admin'
+let adminUser   = null;
+let adminRoles  = [];
+let adminView   = 'dashboard';
+let adminRows   = [];     // 퇴직자 목록 캐시
+
+// ============================================================
+// 초기화 — 기존 세션 복원
+// ============================================================
+(async function init() {
+  root.innerHTML = `<div class="min-h-screen flex items-center justify-center"><div class="w-8 h-8 rounded-full border-2 border-ink-200 border-t-brand animate-spin"></div></div>`;
+
+  if (!sb) { renderLogin(); return; }
+
+  // 관리자 세션 체크
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    adminUser = session.user;
+    await loadAdminRoles();
+    if (adminRoles.length > 0) { appMode = 'admin'; renderAdminApp(); return; }
+  }
+
+  // 직원 세션 체크
+  const emp = getEmpIdentity();
+  if (emp) { appMode = 'employee'; routeEmployee(); return; }
+
+  renderLogin();
+})();
+
+// ============================================================
+// 공통 유틸
+// ============================================================
+function getEmpIdentity() {
+  try {
+    const d = JSON.parse(sessionStorage.getItem('emp_identity') || 'null');
+    if (!d) return null;
+    if (Date.now() - d.ts > 30 * 60 * 1000) { sessionStorage.removeItem('emp_identity'); return null; }
+    return d;
+  } catch { return null; }
+}
+function setEmpIdentity(employee_id, name) {
+  sessionStorage.setItem('emp_identity', JSON.stringify({ employee_id, name, ts: Date.now() }));
+}
+function clearEmpIdentity() { sessionStorage.removeItem('emp_identity'); }
+
+async function loadAdminRoles() {
+  const { data } = await sb.from('user_roles').select('role_name').eq('user_id', adminUser.id);
+  adminRoles = (data || []).map(r => r.role_name);
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  adminUser = null; adminRoles = []; appMode = null;
+  clearEmpIdentity();
+  renderLogin();
+}
+
+// ============================================================
+// 로그인 화면 (통합: 직원 탭 / 관리자 탭)
+// ============================================================
+function renderLogin(tab = 'employee') {
+  appMode = null;
+  root.innerHTML = `
+    <div class="min-h-screen flex flex-col">
+      <div class="flex-1 flex items-center justify-center px-4 py-16">
+        <div class="w-full max-w-md fade-in">
+
+          <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 mb-4">
+              <div class="w-9 h-9 rounded-lg bg-brand text-white grid place-items-center font-bold text-sm">D</div>
+              <span class="text-sm font-semibold text-ink-700 tracking-wide uppercase">Daewoong Pharmaceutical</span>
+            </div>
+            <h1 class="text-2xl font-semibold text-ink-900">HR 포털</h1>
+            <p class="mt-1 text-sm text-ink-500">퇴직 접수 및 관리 시스템</p>
+          </div>
+
+          <!-- 탭 -->
+          <div class="flex bg-ink-100 rounded-xl p-1 mb-6">
+            <button id="tabEmp" onclick="renderLogin('employee')"
+              class="flex-1 h-9 rounded-lg text-sm font-medium transition ${tab==='employee' ? 'bg-white shadow-soft text-ink-900' : 'text-ink-500 hover:text-ink-700'}">
+              직원
+            </button>
+            <button id="tabAdmin" onclick="renderLogin('admin')"
+              class="flex-1 h-9 rounded-lg text-sm font-medium transition ${tab==='admin' ? 'bg-white shadow-soft text-ink-900' : 'text-ink-500 hover:text-ink-700'}">
+              관리자 (HR)
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl2 shadow-card border border-ink-100 p-8">
+            ${tab === 'employee' ? employeeLoginForm() : adminLoginForm()}
+          </div>
+
+          <p class="mt-6 text-center text-xs text-ink-400">
+            문의: hr@daewoong.co.kr · 내선 1234
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (tab === 'employee') bindEmployeeLogin();
+  else bindAdminLogin();
+}
+
+function employeeLoginForm() {
+  return `
+    <h2 class="text-base font-semibold text-ink-900 mb-1">직원 본인 확인</h2>
+    <p class="text-xs text-ink-500 mb-6">사번과 이름으로 확인 후 퇴직 메뉴를 이용하실 수 있습니다.</p>
+    <form id="empLoginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-ink-700 mb-1.5">사번</label>
+        <input name="employee_id" type="text" required placeholder="예: 20231234"
+          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-ink-700 mb-1.5">이름</label>
+        <input name="name" type="text" required placeholder="홍길동"
+          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+      </div>
+      <div id="empLoginError" class="hidden text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+      <button type="submit" id="empLoginBtn"
+        class="w-full h-11 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white font-medium rounded-lg transition">
+        다음 단계로 →
+      </button>
+    </form>
+    <p class="mt-5 text-xs text-ink-400 leading-relaxed">
+      · 사번/이름은 최신 직원명부(월 1회 갱신) 기준으로 조회됩니다.<br/>
+      · 일치하지 않을 경우 인사팀(내선 1234)으로 문의해 주세요.
+    </p>
+  `;
+}
+
+function adminLoginForm() {
+  return `
+    <h2 class="text-base font-semibold text-ink-900 mb-1">관리자 로그인</h2>
+    <p class="text-xs text-ink-500 mb-6">인사담당자 전용입니다. Supabase 계정으로 로그인하세요.</p>
+    <form id="adminLoginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-ink-700 mb-1.5">이메일</label>
+        <input name="email" type="email" required
+          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-ink-700 mb-1.5">비밀번호</label>
+        <input name="password" type="password" required
+          class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+      </div>
+      <div id="adminLoginError" class="hidden text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+      <button type="submit" id="adminLoginBtn"
+        class="w-full h-11 bg-ink-900 hover:bg-ink-800 disabled:opacity-60 text-white font-medium rounded-lg transition">
+        로그인
+      </button>
+    </form>
+  `;
+}
+
+function bindEmployeeLogin() {
+  document.getElementById('empLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const errBox = document.getElementById('empLoginError');
+    const btn = document.getElementById('empLoginBtn');
+    errBox.classList.add('hidden');
+    btn.disabled = true; btn.textContent = '확인 중...';
+    try {
+      const { data, error } = await sb.rpc('check_employee_identity', {
+        p_employee_id: fd.get('employee_id').trim(),
+        p_name: fd.get('name').trim(),
+      });
+      if (error) throw error;
+      if (!data) {
+        errBox.textContent = '사번과 이름이 일치하지 않습니다.';
+        errBox.classList.remove('hidden'); return;
+      }
+      setEmpIdentity(fd.get('employee_id').trim(), fd.get('name').trim());
+      appMode = 'employee';
+      renderPortal();
+    } catch (err) {
+      errBox.textContent = '오류: ' + (err.message || '잠시 후 다시 시도해 주세요.');
+      errBox.classList.remove('hidden');
+    } finally { btn.disabled = false; btn.textContent = '다음 단계로 →'; }
+  });
+}
+
+function bindAdminLogin() {
+  document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const errBox = document.getElementById('adminLoginError');
+    const btn = document.getElementById('adminLoginBtn');
+    errBox.classList.add('hidden');
+    btn.disabled = true; btn.textContent = '로그인 중...';
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({
+        email: fd.get('email'), password: fd.get('password'),
+      });
+      if (error) throw error;
+      adminUser = data.user;
+      await loadAdminRoles();
+      if (adminRoles.length === 0) {
+        errBox.textContent = '로그인은 성공했지만 권한이 없습니다. hr_admin에게 문의하세요.';
+        errBox.classList.remove('hidden');
+        await sb.auth.signOut(); return;
+      }
+      appMode = 'admin';
+      renderAdminApp();
+    } catch (err) {
+      errBox.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      errBox.classList.remove('hidden');
+    } finally { btn.disabled = false; btn.textContent = '로그인'; }
+  });
+}
+
+// ============================================================
+// 직원 플로우
+// ============================================================
+let submitState = { step: 'verify', employee: null };
+
+function routeEmployee() {
+  const hash = window.location.hash || '#/';
+  if (hash === '#/portal')      renderPortal();
+  else if (hash === '#/guide')  renderGuide();
+  else if (hash === '#/submit') renderSubmit();
+  else                          renderPortal();
+}
+window.addEventListener('hashchange', () => { if (appMode === 'employee') routeEmployee(); });
+
+function empHeader(backHash, backLabel) {
+  return `
+    <header class="border-b border-ink-200 bg-white">
+      <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-7 h-7 rounded bg-brand text-white grid place-items-center font-bold text-xs">D</div>
+          <span class="text-sm font-semibold text-ink-800">대웅제약 HR 포털</span>
+        </div>
+        <button onclick="logout()" class="text-xs text-ink-400 hover:text-ink-700 transition">로그아웃</button>
+      </div>
+    </header>
+  `;
+}
+
+function renderPortal() {
+  const identity = getEmpIdentity();
+  if (!identity) { renderLogin(); return; }
+  window.location.hash = '#/portal';
+
+  root.innerHTML = `
+    ${empHeader()}
+    <main class="max-w-6xl mx-auto px-6 py-14 fade-in">
+      <div class="mb-12">
+        <p class="text-[13px] font-medium text-brand tracking-[0.2em] uppercase">Welcome</p>
+        <h1 class="mt-2 text-3xl font-semibold text-ink-900">${esc(identity.name)}님, 안녕하세요.</h1>
+        <p class="mt-2 text-ink-500 text-sm">원하시는 메뉴를 선택해 주세요.</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <button onclick="renderGuide()" class="group text-left bg-white rounded-xl2 border border-ink-100 shadow-card p-8 hover:border-brand/40 hover:shadow-lg transition">
+          <div class="w-12 h-12 rounded-xl bg-brand-soft text-brand grid place-items-center mb-6">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </div>
+          <h2 class="text-xl font-semibold text-ink-900">퇴직 절차 안내 확인하기</h2>
+          <p class="mt-2 text-sm text-ink-500 leading-relaxed">퇴직 전 확인해야 할 절차, 서류, 일정을 안내드립니다.</p>
+          <div class="mt-8 text-sm font-medium text-brand">안내 보기 →</div>
+        </button>
+
+        <button onclick="renderSubmit()" class="group text-left bg-ink-900 rounded-xl2 border border-ink-900 shadow-card p-8 hover:shadow-lg transition text-white">
+          <div class="w-12 h-12 rounded-xl bg-white/10 text-white grid place-items-center mb-6">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </div>
+          <h2 class="text-xl font-semibold">퇴직 접수하기</h2>
+          <p class="mt-2 text-sm text-ink-300 leading-relaxed">퇴사일, 근무마감일 등을 입력하고 퇴직 접수를 완료합니다.</p>
+          <div class="mt-8 text-sm font-medium text-white">접수 진행 →</div>
+        </button>
+      </div>
+
+      <div class="mt-10 bg-white border border-ink-100 rounded-xl2 p-5 text-sm text-ink-500">
+        <span class="font-medium text-ink-700">도움이 필요하신가요?</span>
+        &nbsp;인사팀 hr@daewoong.co.kr · 내선 1234
+      </div>
+    </main>
+  `;
+}
+
+function renderGuide() {
+  const identity = getEmpIdentity();
+  if (!identity) { renderLogin(); return; }
+  window.location.hash = '#/guide';
+
+  const STEPS = [
+    { num:"01", title:"상급자 면담", desc:"퇴직 의사를 부서장·센터장과 사전 협의합니다." },
+    { num:"02", title:"퇴직 접수", desc:"본 시스템에서 퇴사일 · 근무마감일 · 계정마감일 등을 접수합니다." },
+    { num:"03", title:"사직서 제출", desc:"사내 양식 사직원을 인사팀에 제출합니다." },
+    { num:"04", title:"업무 인수인계", desc:"진행 중인 업무와 자료를 후임자 또는 팀원에게 인계합니다." },
+    { num:"05", title:"자산 반납 · 계정 정리", desc:"노트북 · 사원증 등 반납, 이메일/SAP 계정 마감이 진행됩니다." },
+    { num:"06", title:"최종 정산", desc:"퇴직금 · 미지급 급여 · 연차 정산 · 4대 보험 상실신고가 처리됩니다." },
+  ];
+
+  root.innerHTML = `
+    ${empHeader()}
+    <main class="max-w-4xl mx-auto px-6 py-14 fade-in">
+      <button onclick="renderPortal()" class="text-sm text-ink-500 hover:text-ink-800 transition mb-8">← 이전으로</button>
+      <div class="mb-10">
+        <p class="text-[13px] font-medium text-brand tracking-[0.2em] uppercase">Resignation Guide</p>
+        <h1 class="mt-2 text-3xl font-semibold text-ink-900">퇴직 절차 안내</h1>
+      </div>
+
+      <div class="relative">
+        <div class="absolute left-6 top-2 bottom-2 w-px bg-ink-200"></div>
+        <ol class="space-y-5">
+          ${STEPS.map(s => `
+            <li class="relative pl-16">
+              <div class="absolute left-0 top-0 w-12 h-12 rounded-full bg-white border border-ink-200 grid place-items-center text-sm font-semibold text-brand">${s.num}</div>
+              <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5">
+                <div class="font-semibold text-ink-900">${s.title}</div>
+                <div class="mt-1 text-sm text-ink-500">${s.desc}</div>
+              </div>
+            </li>`).join('')}
+        </ol>
+      </div>
+
+      <div class="mt-12 text-center">
+        <button onclick="renderSubmit()" class="h-12 px-8 bg-brand hover:bg-brand-hover text-white font-medium rounded-lg transition">
+          퇴직 접수하러 가기 →
+        </button>
+      </div>
+    </main>
+  `;
+}
+
+function renderSubmit() {
+  const identity = getEmpIdentity();
+  if (!identity) { renderLogin(); return; }
+  window.location.hash = '#/submit';
+  submitState.step === 'form' && submitState.employee ? renderSubmitForm(identity) : renderVerifyStep(identity);
+}
+
+function renderVerifyStep(identity) {
+  root.innerHTML = `
+    ${empHeader()}
+    <main class="max-w-3xl mx-auto px-6 py-14 fade-in">
+      <button onclick="renderPortal()" class="text-sm text-ink-500 hover:text-ink-800 transition mb-8">← 이전으로</button>
+      <div class="mb-8">
+        <p class="text-[13px] font-medium text-brand tracking-[0.2em] uppercase">Resignation Submission</p>
+        <h1 class="mt-2 text-3xl font-semibold text-ink-900">퇴직 접수</h1>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-card p-8">
+        <div class="text-base font-semibold text-ink-900 mb-1">본인 확인 (2단계)</div>
+        <p class="text-sm text-ink-500 mb-6">퇴직 접수는 중요한 사안이므로 생년월일을 한 번 더 확인합니다.</p>
+        <form id="verifyForm" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4 p-4 bg-ink-50 rounded-lg text-sm">
+            <div><p class="text-xs text-ink-500">사번</p><p class="font-medium mt-0.5">${esc(identity.employee_id)}</p></div>
+            <div><p class="text-xs text-ink-500">이름</p><p class="font-medium mt-0.5">${esc(identity.name)}</p></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-700 mb-1.5">생년월일</label>
+            <input name="birth_date" type="date" required class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+          </div>
+          <div id="verifyError" class="hidden text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+          <button type="submit" id="verifyBtn" class="w-full h-11 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white font-medium rounded-lg transition">본인 확인 완료</button>
+        </form>
+      </div>
+    </main>
+  `;
+  document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const errBox = document.getElementById('verifyError');
+    const btn = document.getElementById('verifyBtn');
+    errBox.classList.add('hidden'); btn.disabled = true; btn.textContent = '확인 중...';
+    try {
+      const { data, error } = await sb.rpc('verify_employee', {
+        p_employee_id: identity.employee_id, p_name: identity.name, p_birth_date: fd.get('birth_date'),
+      });
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        errBox.textContent = '생년월일이 일치하지 않습니다.'; errBox.classList.remove('hidden'); return;
+      }
+      submitState = { step: 'form', employee: data[0] };
+      renderSubmitForm(identity);
+    } catch (err) {
+      errBox.textContent = '오류: ' + (err.message || '잠시 후 다시 시도해 주세요.'); errBox.classList.remove('hidden');
+    } finally { btn.disabled = false; btn.textContent = '본인 확인 완료'; }
+  });
+}
+
+function renderSubmitForm(identity) {
+  const emp = submitState.employee;
+  root.innerHTML = `
+    ${empHeader()}
+    <main class="max-w-3xl mx-auto px-6 py-14 fade-in">
+      <button onclick="submitState={step:'verify',employee:null}; renderSubmit();" class="text-sm text-ink-500 hover:text-ink-800 transition mb-8">← 이전으로</button>
+      <div class="mb-8">
+        <p class="text-[13px] font-medium text-brand tracking-[0.2em] uppercase">Resignation Submission</p>
+        <h1 class="mt-2 text-3xl font-semibold text-ink-900">퇴직 접수</h1>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-card p-6 mb-5">
+        <div class="flex items-center gap-2 mb-3">
+          <svg class="w-4 h-4 text-accent-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          <span class="text-sm font-medium text-ink-700">조회된 본인 정보</span>
+        </div>
+        <div class="grid grid-cols-3 gap-4 text-sm">
+          ${infoField("사번",emp.employee_id)} ${infoField("이름",emp.name)} ${infoField("회사명",emp.company_name)}
+          ${infoField("본부",emp.division||"-")} ${infoField("센터",emp.center||"-")} ${infoField("팀",emp.team||"-")}
+        </div>
+      </div>
+      <form id="submitForm" class="bg-white rounded-xl2 border border-ink-100 shadow-card p-6 space-y-5">
+        <div class="font-semibold text-ink-900">퇴직 정보 입력</div>
+        <div class="grid md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-medium text-ink-700 mb-1.5">퇴사일 <span class="text-accent-red">*</span></label>
+            <input name="resignation_date" type="date" required class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-700 mb-1.5">실제근무마감일</label>
+            <input name="last_working_date" type="date" class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-ink-700 mb-1.5">계정마감일</label>
+            <input name="account_closing_date" type="date" class="w-full h-11 px-4 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-ink-700 mb-1.5">비고</label>
+          <textarea name="note" rows="3" placeholder="추가로 전달하실 내용이 있다면 입력해 주세요."
+            class="w-full px-4 py-3 rounded-lg border border-ink-200 focus:border-brand focus:ring-2 focus:ring-brand/10 outline-none transition min-h-[80px]"></textarea>
+        </div>
+        <div id="submitError" class="hidden text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+        <button type="submit" id="submitBtn" class="w-full h-11 bg-brand hover:bg-brand-hover disabled:opacity-60 text-white font-medium rounded-lg transition">퇴직 접수 제출</button>
+      </form>
+    </main>
+  `;
+  document.getElementById('submitForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const errBox = document.getElementById('submitError');
+    const btn = document.getElementById('submitBtn');
+    errBox.classList.add('hidden'); btn.disabled = true; btn.textContent = '접수 중...';
+    try {
+      const { error } = await sb.from('resignation_requests').insert({
+        company_id: emp.company_id, employee_id: emp.employee_id, name: emp.name,
+        company_name: emp.company_name, division: emp.division, center: emp.center, team: emp.team,
+        hire_date: emp.hire_date,
+        resignation_date: fd.get('resignation_date'),
+        last_working_date: fd.get('last_working_date') || null,
+        account_closing_date: fd.get('account_closing_date') || null,
+        note: fd.get('note') || null,
+      });
+      if (error) throw error;
+      document.getElementById('doneModal').classList.remove('hidden');
+    } catch (err) {
+      errBox.textContent = '접수 실패: ' + (err.message || '오류'); errBox.classList.remove('hidden');
+    } finally { btn.disabled = false; btn.textContent = '퇴직 접수 제출'; }
+  });
+}
+
+function infoField(label, value) {
+  return `<div><p class="text-xs text-ink-500 mb-0.5">${esc(label)}</p><p class="font-medium text-ink-800">${esc(value)}</p></div>`;
+}
+
+function closeDoneModal() {
+  document.getElementById('doneModal').classList.add('hidden');
+  submitState = { step: 'verify', employee: null };
+  clearEmpIdentity();
+  renderLogin();
+}
+
+// ============================================================
+// 관리자 플로우
+// ============================================================
+function renderAdminApp() {
+  const MENU = [
+    { k:'dashboard',    label:'대시보드',        roles:['hr_admin','hr_viewer','company_admin','uploader_admin'] },
+    { k:'resignations', label:'퇴직자 관리',      roles:['hr_admin','hr_viewer','company_admin'] },
+    { k:'alerts',       label:'알림 · 미완료',    roles:['hr_admin','hr_viewer','company_admin'] },
+    { k:'upload',       label:'직원명부 업로드',  roles:['hr_admin','uploader_admin','company_admin'] },
+    { k:'roles',        label:'권한 관리',        roles:['hr_admin'] },
+  ];
+  const menuHtml = MENU
+    .filter(m => m.roles.some(r => adminRoles.includes(r)))
+    .map(m => `
+      <button onclick="setAdminView('${m.k}')"
+        class="w-full text-left flex items-center gap-3 px-3 h-10 rounded-lg text-sm transition ${adminView===m.k ? 'bg-white/10 text-white font-medium' : 'text-ink-300 hover:text-white hover:bg-white/5'}">
+        ${m.label}
+      </button>`).join('');
+
+  root.innerHTML = `
+    <div class="flex min-h-screen">
+      <aside class="w-60 bg-ink-900 text-ink-100 flex flex-col sticky top-0 min-h-screen">
+        <div class="px-5 py-5 border-b border-white/10">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-white text-ink-900 grid place-items-center font-bold text-sm">D</div>
+            <div><div class="text-[10px] uppercase tracking-widest text-ink-400">Admin</div><div class="text-sm font-semibold text-white">퇴직 관리</div></div>
+          </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1">${menuHtml}</nav>
+        <div class="border-t border-white/10 p-4 text-xs text-ink-400">
+          <div class="truncate">${esc(adminUser.email)}</div>
+          <div class="mt-1 flex flex-wrap gap-1">${adminRoles.map(r=>`<span class="px-1.5 py-0.5 bg-white/10 rounded text-[10px]">${r}</span>`).join('')}</div>
+          <button onclick="logout()" class="mt-3 hover:text-white transition">로그아웃 →</button>
+        </div>
+      </aside>
+      <main id="adminMain" class="flex-1 bg-ink-50 min-h-screen"></main>
+    </div>
+  `;
+  renderAdminView();
+}
+
+function setAdminView(k) { adminView = k; renderAdminApp(); }
+
+function renderAdminView() {
+  switch (adminView) {
+    case 'dashboard':    renderDashboard(); break;
+    case 'resignations': renderResignations(); break;
+    case 'alerts':       renderAlerts(); break;
+    case 'upload':       renderUpload(); break;
+    case 'roles':        renderRoles(); break;
+  }
+}
+
+// ---- 대시보드 ----
+async function renderDashboard() {
+  const main = document.getElementById('adminMain');
+  main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
+  const { data } = await sb.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}).limit(2000);
+  const list = data || [];
+  const now = new Date(); const Y = now.getFullYear(); const M = now.getMonth();
+  const total = list.length;
+  const thisYear = list.filter(r=>r.resignation_date && new Date(r.resignation_date).getFullYear()===Y).length;
+  const thisMonth = list.filter(r=>{ if(!r.resignation_date) return false; const d=new Date(r.resignation_date); return d.getFullYear()===Y&&d.getMonth()===M; }).length;
+  const incomplete = list.filter(r=>!r.completion_status).length;
+  const d5 = list.filter(r=>r.is_d5_warning).length;
+  const tenures = list.map(r=>r.tenure_months).filter(v=>v!=null);
+  const avgTenure = tenures.length ? Math.round(tenures.reduce((a,b)=>a+b,0)/tenures.length) : 0;
+  const monthlyMap = new Map();
+  for(let i=11;i>=0;i--){ const d=new Date(Y,M-i,1); const k=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`; monthlyMap.set(k,0); }
+  list.forEach(r=>{ if(!r.resignation_date) return; const d=new Date(r.resignation_date); const k=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`; if(monthlyMap.has(k)) monthlyMap.set(k,monthlyMap.get(k)+1); });
+  const groupBy = f => { const m=new Map(); list.forEach(r=>{ const k=r[f]||'(미지정)'; m.set(k,(m.get(k)||0)+1); }); return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).slice(0,8); };
+  main.innerHTML = `
+    <div class="p-8 max-w-7xl fade-in">
+      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">대시보드</h1></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        ${statCard('총 퇴직자',total,'명','brand')}
+        ${statCard(Y+'년 누적',thisYear,'명')}
+        ${statCard('이번 달',thisMonth,'명')}
+        ${statCard('평균 재직기간',avgTenure,'개월','default',(avgTenure/12).toFixed(1)+'년')}
+      </div>
+      <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+        ${statCard('미완료',incomplete,'건',incomplete>0?'warn':'success')}
+        ${statCard('D-5 경고',d5,'건',d5>0?'warn':'default')}
+        ${statCard('SAP 미완료',list.filter(r=>!r.sap_posted).length,'건')}
+        ${statCard('사직원 미제출',list.filter(r=>!r.resignation_letter_submitted).length,'건')}
+      </div>
+      <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        ${chartCard('월별 퇴직자 추이 (12개월)','cM')}
+        ${chartCard('본부별 TOP 8','cD')}
+        ${chartCard('센터별 TOP 8','cC')}
+        ${chartCard('팀별 TOP 8','cT')}
+        ${chartCard('재직기간 분포','cTen')}
+      </div>
+    </div>`;
+  const md = Array.from(monthlyMap.entries());
+  const byD = groupBy('division'), byC = groupBy('center'), byT = groupBy('team');
+  const buckets = [{l:'1년 미만',c:tenures.filter(t=>t<12).length},{l:'1~3년',c:tenures.filter(t=>t>=12&&t<36).length},{l:'3~5년',c:tenures.filter(t=>t>=36&&t<60).length},{l:'5~10년',c:tenures.filter(t=>t>=60&&t<120).length},{l:'10년+',c:tenures.filter(t=>t>=120).length}];
+  mkLine('cM',md.map(m=>m[0]),md.map(m=>m[1]));
+  mkBarH('cD',byD.map(m=>m[0]),byD.map(m=>m[1]),'#1E40AF');
+  mkBarH('cC',byC.map(m=>m[0]),byC.map(m=>m[1]),'#93C5FD');
+  mkBarH('cT',byT.map(m=>m[0]),byT.map(m=>m[1]),'#60A5FA');
+  mkBar('cTen',buckets.map(b=>b.l),buckets.map(b=>b.c),'#1E40AF');
+}
+function statCard(l,v,s,tone='default',hint){
+  const t={default:'bg-white border-ink-100',warn:'bg-amber-50 border-amber-100',brand:'bg-brand-soft border-brand/10',success:'bg-green-50 border-green-100'};
+  return `<div class="rounded-xl2 border p-5 shadow-soft ${t[tone]}"><div class="text-xs text-ink-500">${esc(l)}</div><div class="mt-2 flex items-baseline gap-1.5"><div class="text-3xl font-semibold text-ink-900 tabular-nums">${v}</div>${s?`<div class="text-sm text-ink-500">${s}</div>`:''}</div>${hint?`<div class="mt-1 text-xs text-ink-500">${hint}</div>`:''}</div>`;
+}
+function chartCard(t,id){ return `<div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5"><div class="text-sm font-semibold text-ink-800 mb-4">${esc(t)}</div><div style="position:relative;height:260px;"><canvas id="${id}"></canvas></div></div>`; }
+function mkLine(id,l,d){ new Chart(document.getElementById(id),{type:'line',data:{labels:l,datasets:[{data:d,borderColor:'#1E40AF',backgroundColor:'rgba(30,64,175,0.08)',tension:0.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}}); }
+function mkBar(id,l,d,c){ new Chart(document.getElementById(id),{type:'bar',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}}); }
+function mkBarH(id,l,d,c){ new Chart(document.getElementById(id),{type:'bar',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}}); }
+
+// ---- 퇴직자 관리 ----
+async function renderResignations() {
+  const main = document.getElementById('adminMain');
+  main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
+  const { data } = await sb.from('v_resignation_list').select('*').order('resignation_date',{ascending:false});
+  adminRows = data || [];
+  const years    = [...new Set(adminRows.map(r=>r.resignation_date?new Date(r.resignation_date).getFullYear():null).filter(Boolean))].sort().reverse();
+  const divisions= [...new Set(adminRows.map(r=>r.division).filter(Boolean))].sort();
+  const centers  = [...new Set(adminRows.map(r=>r.center).filter(Boolean))].sort();
+  const teams    = [...new Set(adminRows.map(r=>r.team).filter(Boolean))].sort();
+  main.innerHTML = `
+    <div class="p-8 max-w-7xl fade-in">
+      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">퇴직자 관리</h1></div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-4 mb-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <input id="fQ" placeholder="사번 · 이름 · 조직 검색" class="h-9 px-3 w-52 rounded-lg border border-ink-200 text-sm focus:border-brand outline-none" />
+          ${selHtml('fYear','전체 연도',years)}
+          ${selHtml('fDiv','전체 본부',divisions)}
+          ${selHtml('fCtr','전체 센터',centers)}
+          ${selHtml('fTeam','전체 팀',teams)}
+          ${selHtml('fSt','전체 상태',['완료','미완료'])}
+          <div class="ml-auto flex items-center gap-3">
+            <span id="cntBox" class="text-sm text-ink-500"></span>
+            <button onclick="exportResig()" class="h-9 px-3 bg-white border border-ink-200 hover:bg-ink-50 rounded-lg text-sm transition">📥 엑셀</button>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-ink-50 text-ink-600">
+              <tr class="border-b border-ink-200">
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">상태</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">사번</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">이름</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">본부</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">센터</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">팀</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">퇴사일</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">근무마감</th>
+                <th class="px-3 py-2.5 text-center font-medium whitespace-nowrap">계정삭제</th>
+                <th class="px-3 py-2.5 text-center font-medium whitespace-nowrap">사직원</th>
+                <th class="px-3 py-2.5 text-center font-medium whitespace-nowrap">SAP</th>
+                <th class="px-3 py-2.5 text-left font-medium whitespace-nowrap">등록일시</th>
+                <th class="px-3 py-2.5 text-center font-medium whitespace-nowrap">후임추천</th>
+              </tr>
+            </thead>
+            <tbody id="resigBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  ['fQ','fYear','fDiv','fCtr','fTeam','fSt'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', renderResigBody);
+    document.getElementById(id).addEventListener('change', renderResigBody);
+  });
+  renderResigBody();
+}
+function selHtml(id,ph,opts){ return `<select id="${id}" class="h-9 px-3 rounded-lg border border-ink-200 text-sm bg-white focus:border-brand outline-none"><option value="">${ph}</option>${opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`; }
+function getFilteredResig() {
+  const q=document.getElementById('fQ').value.toLowerCase();
+  const year=document.getElementById('fYear').value, div=document.getElementById('fDiv').value;
+  const ctr=document.getElementById('fCtr').value, tm=document.getElementById('fTeam').value;
+  const st=document.getElementById('fSt').value;
+  return adminRows.filter(r=>{
+    if(year&&String(new Date(r.resignation_date).getFullYear())!==year) return false;
+    if(div&&(r.division||'')!==div) return false;
+    if(ctr&&(r.center||'')!==ctr) return false;
+    if(tm&&(r.team||'')!==tm) return false;
+    if(st&&r.status_label!==st) return false;
+    if(q){ const h=`${r.name||''} ${r.employee_id||''} ${r.division||''} ${r.center||''} ${r.team||''}`.toLowerCase(); if(!h.includes(q)) return false; }
+    return true;
+  });
+}
+function renderResigBody() {
+  const filtered = getFilteredResig();
+  document.getElementById('cntBox').innerHTML = `총 <span class="font-semibold text-ink-800">${filtered.length}</span>건`;
+  const body = document.getElementById('resigBody');
+  if(!filtered.length){ body.innerHTML=`<tr><td colspan="13" class="text-center py-10 text-ink-400">조건에 맞는 데이터가 없습니다.</td></tr>`; return; }
+  body.innerHTML = filtered.map(r=>`
+    <tr class="border-b border-ink-100 hover:bg-ink-50/60 transition">
+      <td class="px-3 py-2.5 whitespace-nowrap">
+        ${r.is_d5_warning?'<span class="text-accent-amber mr-1">⚠</span>':''}
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${r.completion_status?'bg-green-50 text-accent-green border border-green-100':'bg-amber-50 text-accent-amber border border-amber-100'}">
+          ${r.completion_status?'완료':'미완료'}</span>
+      </td>
+      <td class="px-3 py-2.5 tabular-nums">${esc(r.employee_id)}</td>
+      <td class="px-3 py-2.5 font-medium text-ink-800">${esc(r.name)}</td>
+      <td class="px-3 py-2.5">${esc(r.division||'-')}</td>
+      <td class="px-3 py-2.5">${esc(r.center||'-')}</td>
+      <td class="px-3 py-2.5">${esc(r.team||'-')}</td>
+      <td class="px-3 py-2.5 tabular-nums">${formatDate(r.resignation_date)}</td>
+      <td class="px-3 py-2.5 tabular-nums">${formatDate(r.last_working_date)}</td>
+      <td class="px-3 py-2.5 text-center">${chkBtn(r.id,'account_deleted',r.account_deleted)}</td>
+      <td class="px-3 py-2.5 text-center">${chkBtn(r.id,'resignation_letter_submitted',r.resignation_letter_submitted)}</td>
+      <td class="px-3 py-2.5 text-center">${chkBtn(r.id,'sap_posted',r.sap_posted)}</td>
+      <td class="px-3 py-2.5 text-ink-500 tabular-nums">${formatDateTime(r.created_at)}</td>
+      <td class="px-3 py-2.5 text-center">
+        <button onclick="openRecoModal('${r.id}')"
+          class="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-brand/30 bg-brand-soft text-brand text-[11px] font-medium hover:bg-brand hover:text-white transition">
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+          추천
+        </button>
+      </td>
+    </tr>`).join('');
+}
+function chkBtn(id,field,on){ return `<button onclick="toggleTask('${id}','${field}',${on})" class="w-5 h-5 rounded border transition inline-flex items-center justify-center ${on?'bg-brand border-brand text-white':'bg-white border-ink-300 text-transparent hover:border-ink-400'}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></button>`; }
+async function toggleTask(id, field, curr) {
+  const newVal = !curr;
+  const patch = { [field]: newVal };
+  const now = new Date().toISOString();
+  if(field==='account_deleted') patch.account_deleted_at=newVal?now:null;
+  if(field==='resignation_letter_submitted') patch.resignation_letter_at=newVal?now:null;
+  if(field==='sap_posted') patch.sap_posted_at=newVal?now:null;
+  const { error } = await sb.from('resignation_admin_tasks').update(patch).eq('resignation_request_id',id);
+  if(error){ alert('실패: '+error.message); return; }
+  const idx = adminRows.findIndex(r=>r.id===id);
+  if(idx>=0){
+    adminRows[idx][field]=newVal;
+    adminRows[idx].completion_status=adminRows[idx].account_deleted&&adminRows[idx].resignation_letter_submitted&&adminRows[idx].sap_posted;
+    adminRows[idx].status_label=adminRows[idx].completion_status?'완료':'미완료';
+  }
+  renderResigBody();
+}
+function exportResig() {
+  const rows = getFilteredResig();
+  const data = rows.map(r=>({ 사번:r.employee_id,이름:r.name,회사명:r.company_name,본부:r.division,센터:r.center,팀:r.team,퇴사일:formatDate(r.resignation_date),근무마감:formatDate(r.last_working_date),계정마감:formatDate(r.account_closing_date),재직개월:r.tenure_months,비고:r.note,계정삭제:r.account_deleted?'완료':'미완료',사직원:r.resignation_letter_submitted?'완료':'미완료',SAP:r.sap_posted?'완료':'미완료',상태:r.status_label,등록:formatDateTime(r.created_at) }));
+  const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'퇴직자'); XLSX.writeFile(wb,`퇴직자_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ---- 알림 ----
+async function renderAlerts() {
+  const main = document.getElementById('adminMain');
+  main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
+  const { data } = await sb.from('v_resignation_list').select('*').order('resignation_date',{ascending:true});
+  const list = data||[], today=new Date();
+  const d5=list.filter(r=>r.is_d5_warning), incomp=list.filter(r=>!r.completion_status&&!r.is_d5_warning);
+  main.innerHTML = `
+    <div class="p-8 max-w-5xl fade-in">
+      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">알림 · 미완료</h1></div>
+      <section class="mb-8">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-full border text-xs font-medium bg-red-50 text-accent-red border-red-100">🚨 D-5 긴급</span>
+          <span class="text-sm text-ink-500">${d5.length}건</span>
+        </div>
+        ${d5.length===0?`<div class="bg-white rounded-xl2 border border-ink-100 p-8 text-center text-sm text-ink-500">현재 5일 이내 미완료 건이 없습니다 👍</div>`:`<div class="grid gap-3">${d5.map(r=>alertCard(r,today,true)).join('')}</div>`}
+      </section>
+      <section>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-full border text-xs font-medium bg-amber-50 text-accent-amber border-amber-100">⏰ 전체 미완료</span>
+          <span class="text-sm text-ink-500">${incomp.length}건</span>
+        </div>
+        ${incomp.length===0?`<div class="bg-white rounded-xl2 border border-ink-100 p-8 text-center text-sm text-ink-500">미완료 건이 없습니다.</div>`:`<div class="grid gap-3">${incomp.map(r=>alertCard(r,today,false)).join('')}</div>`}
+      </section>
+    </div>`;
+}
+function alertCard(r,today,urgent) {
+  const dday=r.resignation_date?daysBetween(today,r.resignation_date):null;
+  const missing=[];
+  if(!r.account_deleted) missing.push('계정삭제');
+  if(!r.resignation_letter_submitted) missing.push('사직원제출');
+  if(!r.sap_posted) missing.push('SAP발령');
+  return `<div class="bg-white rounded-xl2 border shadow-soft p-5 flex items-center justify-between gap-4 ${urgent?'border-red-200':'border-ink-100'}">
+    <div class="flex items-center gap-4 min-w-0">
+      <div class="w-14 h-14 rounded-lg grid place-items-center shrink-0 ${urgent?'bg-red-50 text-accent-red':'bg-amber-50 text-accent-amber'}">
+        <div class="text-center leading-none"><div class="text-[10px] font-medium">D</div><div class="text-lg font-bold tabular-nums">${dday!==null?(dday>=0?'-'+dday:'+'+Math.abs(dday)):'-'}</div></div>
+      </div>
+      <div class="min-w-0">
+        <div class="font-semibold text-ink-900">${esc(r.name)} <span class="text-sm text-ink-500 font-normal">(${esc(r.employee_id)})</span></div>
+        <div class="text-xs text-ink-500 mt-0.5">${[r.division,r.center,r.team].filter(Boolean).map(esc).join(' · ')}</div>
+        <div class="mt-1.5 flex flex-wrap gap-1.5">${missing.map(m=>`<span class="px-2 py-0.5 bg-ink-100 text-ink-700 rounded text-[11px]">✗ ${m}</span>`).join('')}</div>
+      </div>
+    </div>
+    <button onclick="setAdminView('resignations')" class="h-9 px-3 rounded-lg border border-ink-200 hover:bg-ink-50 text-sm text-ink-700 shrink-0 transition">처리 →</button>
+  </div>`;
+}
+
+// ---- 직원명부 업로드 ----
+async function renderUpload() {
+  const main = document.getElementById('adminMain');
+  main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
+  const { count } = await sb.from('employees_master').select('*',{count:'exact',head:true});
+  const { data: logs } = await sb.from('employee_upload_logs').select('*').order('uploaded_at',{ascending:false}).limit(20);
+  main.innerHTML = `
+    <div class="p-8 max-w-4xl fade-in">
+      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">직원명부 업로드</h1><p class="mt-1 text-sm text-ink-500">월 1회 최신 명부를 업로드합니다. 사번 기준으로 upsert됩니다.</p></div>
+      <div class="grid md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5"><div class="text-xs text-ink-500">현재 마스터 인원</div><div class="mt-1 text-2xl font-semibold text-ink-900 tabular-nums">${count||0} <span class="text-sm font-normal text-ink-500">명</span></div></div>
+        <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5 md:col-span-2"><div class="text-xs text-ink-500">파일 형식</div><div class="mt-1 text-sm text-ink-700">필수: <span class="font-medium">사번, 이름, 회사명, 본부, 센터, 팀, 입사일, 재직상태</span><span class="text-ink-400"> (생년월일 권장)</span></div></div>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-6 mb-8">
+        <label class="block"><span class="text-sm font-medium text-ink-700">엑셀 파일 선택 (.xlsx)</span>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" class="mt-2 block w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border file:border-ink-200 file:bg-white file:font-medium hover:file:bg-ink-50 transition" />
+        </label>
+        <div id="fileInfo" class="mt-3 text-sm text-ink-600 hidden"></div>
+        <div id="uploadMsg" class="mt-3 hidden"></div>
+        <button onclick="handleUpload()" id="uploadBtn" disabled class="mt-4 h-10 px-5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg text-sm font-medium transition">📤 업로드 실행</button>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-4 border-b border-ink-100 font-semibold text-ink-900">업로드 이력</div>
+        <table class="w-full text-sm"><thead class="bg-ink-50 text-ink-600 text-left"><tr class="border-b border-ink-100"><th class="px-5 py-2.5 font-medium">일시</th><th class="px-5 py-2.5 font-medium">파일명</th><th class="px-5 py-2.5 text-right font-medium">총건</th><th class="px-5 py-2.5 text-right font-medium">신규</th><th class="px-5 py-2.5 text-right font-medium">갱신</th></tr></thead>
+        <tbody>${!logs||logs.length===0?`<tr><td colspan="5" class="px-5 py-8 text-center text-ink-400">이력 없음</td></tr>`:logs.map(l=>`<tr class="border-b border-ink-100"><td class="px-5 py-2.5 tabular-nums">${formatDateTime(l.uploaded_at)}</td><td class="px-5 py-2.5">${esc(l.uploaded_file_name)}</td><td class="px-5 py-2.5 text-right tabular-nums">${l.total_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-accent-green">${l.inserted_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-brand">${l.updated_count}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+  document.getElementById('fileInput').addEventListener('change', e=>{
+    const f=e.target.files[0]; const info=document.getElementById('fileInfo'); const btn=document.getElementById('uploadBtn');
+    if(f){ info.textContent=`선택됨: ${f.name} (${(f.size/1024).toFixed(1)} KB)`; info.classList.remove('hidden'); btn.disabled=false; }
+  });
+}
+const HDR_MAP={'사번':'employee_id','이름':'name','회사명':'company_name','본부':'division','센터':'center','팀':'team','입사일':'hire_date','재직상태':'employment_status','생년월일':'birth_date'};
+function parseExcelDate(v){ if(v==null||v==='') return null; if(typeof v==='number'){ const d=XLSX.SSF.parse_date_code(v); if(!d) return null; return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`; } if(typeof v==='string'){ const s=v.trim().replace(/\./g,'-').replace(/\//g,'-'); const m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`; } return null; }
+async function handleUpload() {
+  const file=document.getElementById('fileInput').files[0]; if(!file) return;
+  const btn=document.getElementById('uploadBtn'), msgBox=document.getElementById('uploadMsg');
+  btn.disabled=true; btn.textContent='업로드 중...'; msgBox.classList.add('hidden');
+  try {
+    const buf=await file.arrayBuffer(); const wb2=XLSX.read(buf,{type:'array'}); const ws=wb2.Sheets[wb2.SheetNames[0]];
+    const raw=XLSX.utils.sheet_to_json(ws,{defval:null}); if(!raw.length) throw new Error('데이터 없음');
+    const { data: company }=await sb.from('companies').select('id').eq('code',SUPABASE_CONFIG.companyCode).single(); if(!company) throw new Error('회사 정보 없음');
+    const { data: logRow }=await sb.from('employee_upload_logs').insert({company_id:company.id,uploaded_file_name:file.name,total_count:raw.length}).select().single();
+    const records=raw.map(row=>{ const m={company_id:company.id,last_upload_id:logRow.id}; for(const[k,v] of Object.entries(row)){ const f=HDR_MAP[k.trim()]; if(!f) continue; if(f==='hire_date'||f==='birth_date') m[f]=parseExcelDate(v); else m[f]=v==null?null:String(v).trim(); } return m; }).filter(r=>r.employee_id&&r.name);
+    if(!records.length) throw new Error('유효 레코드 없음');
+    const empIds=records.map(r=>r.employee_id);
+    const { data: existing }=await sb.from('employees_master').select('employee_id').eq('company_id',company.id).in('employee_id',empIds);
+    const existingSet=new Set((existing||[]).map(e=>e.employee_id));
+    const insertedCount=records.filter(r=>!existingSet.has(r.employee_id)).length, updatedCount=records.length-insertedCount;
+    for(let i=0;i<records.length;i+=500){ const { error }=await sb.from('employees_master').upsert(records.slice(i,i+500),{onConflict:'company_id,employee_id'}); if(error) throw error; }
+    await sb.from('employee_upload_logs').update({inserted_count:insertedCount,updated_count:updatedCount}).eq('id',logRow.id);
+    msgBox.className='mt-3 text-sm text-accent-green bg-green-50 border border-green-100 rounded-lg px-3 py-2';
+    msgBox.textContent=`완료 · 총 ${records.length}건 (신규 ${insertedCount} · 갱신 ${updatedCount})`;
+    msgBox.classList.remove('hidden');
+    setTimeout(()=>renderUpload(),1500);
+  } catch(err) {
+    msgBox.className='mt-3 text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2';
+    msgBox.textContent='실패: '+(err.message||'오류'); msgBox.classList.remove('hidden');
+  } finally { btn.disabled=false; btn.textContent='📤 업로드 실행'; }
+}
+
+// ---- 권한 관리 ----
+async function renderRoles() {
+  const main = document.getElementById('adminMain');
+  if(!adminRoles.includes('hr_admin')){ main.innerHTML=`<div class="p-8"><div class="bg-white border border-ink-100 rounded-xl2 p-8 text-center text-sm text-ink-500">hr_admin 권한이 필요합니다.</div></div>`; return; }
+  const { data: roles }=await sb.from('user_roles').select('*').order('granted_at',{ascending:false});
+  main.innerHTML=`
+    <div class="p-8 max-w-5xl fade-in">
+      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">권한 관리</h1></div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5 mb-6">
+        <div class="text-sm font-semibold text-ink-900 mb-4">권한 부여</div>
+        <div class="grid md:grid-cols-[1fr_200px_auto] gap-3">
+          <input id="newUserId" placeholder="사용자 UUID" class="h-10 px-3 rounded-lg border border-ink-200 text-sm font-mono focus:border-brand outline-none" />
+          <select id="newRole" class="h-10 px-3 rounded-lg border border-ink-200 text-sm bg-white focus:border-brand outline-none">
+            <option value="hr_viewer">HR Viewer</option>
+            <option value="hr_admin">HR Admin</option>
+            <option value="company_admin">Company Admin</option>
+            <option value="uploader_admin">Uploader</option>
+          </select>
+          <button onclick="grantRole()" class="h-10 px-4 bg-brand hover:bg-brand-hover text-white rounded-lg text-sm font-medium transition">+ 부여</button>
+        </div>
+        <div id="roleMsg" class="hidden mt-3"></div>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-4 border-b border-ink-100 font-semibold text-ink-900">부여된 권한 (${(roles||[]).length})</div>
+        <table class="w-full text-sm"><thead class="bg-ink-50 text-ink-600 text-left"><tr class="border-b border-ink-100"><th class="px-5 py-2.5 font-medium">User UUID</th><th class="px-5 py-2.5 font-medium">Role</th><th class="px-5 py-2.5 font-medium">부여일</th><th class="px-5 py-2.5 w-10"></th></tr></thead>
+        <tbody>${!roles||roles.length===0?`<tr><td colspan="4" class="px-5 py-8 text-center text-ink-400">없음</td></tr>`:roles.map(r=>`<tr class="border-b border-ink-100"><td class="px-5 py-2.5 font-mono text-xs text-ink-700">${esc(r.user_id)}</td><td class="px-5 py-2.5"><span class="px-2 py-0.5 bg-ink-100 rounded text-xs font-medium">${esc(r.role_name)}</span></td><td class="px-5 py-2.5 tabular-nums text-ink-500">${formatDateTime(r.granted_at)}</td><td class="px-5 py-2.5 text-right"><button onclick="revokeRole('${r.id}')" class="text-ink-400 hover:text-accent-red transition">🗑</button></td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+async function grantRole() {
+  const userId=document.getElementById('newUserId').value.trim(), role=document.getElementById('newRole').value, msg=document.getElementById('roleMsg');
+  if(!userId){ msg.className='mt-3 text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2'; msg.textContent='UUID를 입력해주세요.'; msg.classList.remove('hidden'); return; }
+  const { error }=await sb.from('user_roles').insert({user_id:userId,role_name:role,granted_by:adminUser.id});
+  if(error){ msg.className='mt-3 text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2'; msg.textContent=error.message; msg.classList.remove('hidden'); return; }
+  renderRoles();
+}
+async function revokeRole(id) {
+  if(!confirm('이 권한을 회수하시겠습니까?')) return;
+  const { error }=await sb.from('user_roles').delete().eq('id',id);
+  if(error){ alert(error.message); return; }
+  renderRoles();
+}
+
+// ============================================================
+// 거현량 후임추천 연동
+// ============================================================
+let _recoRow = null;
+
+function openRecoModal(id) {
+  _recoRow = adminRows.find(r => r.id === id);
+  if (!_recoRow) return;
+  document.getElementById('recoModalTitle').textContent = `${esc(_recoRow.name)} 후임 인재 추천`;
+  document.getElementById('recoModalSub').textContent = [_recoRow.division, _recoRow.center, _recoRow.team].filter(Boolean).map(esc).join(' · ') + ' · 퇴사일 ' + formatDate(_recoRow.resignation_date);
+  document.getElementById('recoKeywordInput').value = [_recoRow.division, _recoRow.center, _recoRow.team].filter(Boolean).join(' ');
+  document.getElementById('recoModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  runRecoSearch();
+}
+function closeRecoModal() {
+  document.getElementById('recoModal').classList.add('hidden');
+  document.body.style.overflow = '';
+  _recoRow = null;
+}
+document.getElementById('recoModal').addEventListener('click', function(e){ if(e.target===this) closeRecoModal(); });
+
+function geoTokenize(text) {
+  if (!text) return [];
+  return [...new Set(text.replace(/[^\w가-힣\s]/g,' ').split(/\s+/).map(t=>t.trim()).filter(t=>t.length>=2))];
+}
+
+async function runRecoSearch() {
+  if (!sbGeo) return;
+  const el = document.getElementById('recoResults');
+  el.innerHTML = `<div class="flex items-center justify-center py-10"><div class="w-5 h-5 rounded-full border-2 border-ink-200 border-t-brand animate-spin mr-3"></div><span class="text-sm text-ink-500">매칭 중...</span></div>`;
+  const keywords = geoTokenize(document.getElementById('recoKeywordInput').value.trim());
+  const { data: experts, error } = await sbGeo.from('geo_experts').select('id,name,org,title,expertise,key_competencies,career,keywords,recruitable,recruit_note').limit(500);
+  if (error) { el.innerHTML=`<div class="py-8 text-center text-sm text-accent-red">조회 오류: ${esc(error.message)}</div>`; return; }
+  if (!experts?.length) { el.innerHTML=`<div class="py-8 text-center text-sm text-ink-400">거현량에 등록된 전문가가 없습니다.</div>`; return; }
+  const scored = experts.map(ex => {
+    let score=0; const matchedKw=[];
+    const kwArr=Array.isArray(ex.keywords)?ex.keywords:(ex.keywords?String(ex.keywords).split(','):[]);
+    const fields=[ex.expertise,ex.key_competencies,ex.career,ex.org,ex.title,kwArr.join(' ')].filter(Boolean).join(' ').toLowerCase();
+    keywords.forEach(k=>{ if(fields.includes(k.toLowerCase())){ score+=10; matchedKw.push(k); } });
+    if(ex.recruitable) score+=8;
+    const reasons=[];
+    if(matchedKw.length) reasons.push(`"${matchedKw.slice(0,3).join('", "')}" 키워드 일치`);
+    if(ex.recruitable) reasons.push('채용 가능 Pool');
+    return { ex, score, reasons: reasons.join(' · ')||'관련 분야 전문가' };
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
+  if(!scored.length) { el.innerHTML=`<div class="py-8 text-center"><div class="text-sm text-ink-500 mb-1">매칭되는 전문가가 없습니다.</div><div class="text-xs text-ink-400">직무·역량 등 구체적 키워드로 재검색해 보세요.</div></div>`; return; }
+  el.innerHTML = `
+    <div class="text-xs text-ink-500 mb-3">총 ${scored.length}명 매칭</div>
+    ${scored.map(({ex,score,reasons})=>`
+      <div class="border border-ink-100 rounded-xl p-4 bg-white hover:border-brand/30 hover:shadow-soft transition">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-semibold text-ink-900">${esc(ex.name)}</span>
+              ${ex.recruitable?'<span class="px-1.5 py-0.5 bg-green-50 text-accent-green border border-green-100 rounded text-[10px] font-semibold">채용Pool</span>':''}
+            </div>
+            <div class="mt-0.5 text-xs text-ink-500">${esc(ex.org||'')}${ex.title?' · '+esc(ex.title):''}</div>
+          </div>
+          <div class="shrink-0 text-right">
+            <div class="text-xl font-bold text-brand tabular-nums">${score}</div>
+            <div class="text-[10px] text-ink-400">점</div>
+          </div>
+        </div>
+        ${ex.expertise?`<div class="mt-2 text-xs text-ink-600 leading-relaxed">${esc(ex.expertise)}</div>`:''}
+        <div class="mt-2 text-[11px] text-brand font-medium">💡 ${esc(reasons)}</div>
+        ${ex.recruit_note?`<div class="mt-1.5 text-[11px] text-ink-500 bg-ink-50 rounded px-2 py-1">📝 ${esc(ex.recruit_note)}</div>`:''}
+      </div>`).join('')}`;
+}
+</script>
+</body>
+</html>
