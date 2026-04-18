@@ -125,6 +125,7 @@ let adminUser   = null;
 let adminRoles  = [];
 let adminView   = 'dashboard';
 let adminRows   = [];     // 퇴직자 목록 캐시
+let _archiveYear = null, _archiveQ = 0, _archiveData = [];
 
 // ============================================================
 // 초기화 — 기존 세션 복원
@@ -813,6 +814,7 @@ function renderAdminApp() {
   const MENU = [
     { k:'dashboard',    label:'대시보드',        roles:['hr_admin','hr_viewer','company_admin','uploader_admin'] },
     { k:'resignations', label:'퇴직자 관리',      roles:['hr_admin','hr_viewer','company_admin'] },
+    { k:'archive',      label:'퇴직자 보관함',    roles:['hr_admin','hr_viewer','company_admin'] },
     { k:'alerts',       label:'알림 · 미완료',    roles:['hr_admin','hr_viewer','company_admin'] },
     { k:'upload',       label:'직원명부 업로드',  roles:['hr_admin','uploader_admin','company_admin'] },
     { k:'roles',        label:'권한 관리',        roles:['hr_admin'] },
@@ -872,6 +874,7 @@ function renderAdminView() {
   switch (adminView) {
     case 'dashboard':    renderDashboard(); break;
     case 'resignations': renderResignations(); break;
+    case 'archive':      renderArchive(); break;
     case 'alerts':       renderAlerts(); break;
     case 'upload':       renderUpload(); break;
     case 'roles':        renderRoles(); break;
@@ -1481,6 +1484,12 @@ async function renderUpload() {
         <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5 md:col-span-2"><div class="text-xs text-ink-500">파일 형식</div><div class="mt-1 text-sm text-ink-700">필수: <span class="font-medium">사번, 이름, 회사명, 본부, 센터, 팀, 입사일, 재직상태</span><span class="text-ink-400"> (생년월일 권장)</span></div></div>
       </div>
       <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-6 mb-8">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span class="text-sm font-semibold text-ink-900">파일 업로드</span>
+          <button onclick="downloadTemplate()" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;font-size:12.5px;cursor:pointer;color:#6366f1;font-weight:600;">
+            📋 업로드 템플릿 다운로드
+          </button>
+        </div>
         <label class="block"><span class="text-sm font-medium text-ink-700">엑셀 파일 선택 (.xlsx)</span>
           <input type="file" id="fileInput" accept=".xlsx,.xls" class="mt-2 block w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border file:border-ink-200 file:bg-white file:font-medium hover:file:bg-ink-50 transition" />
         </label>
@@ -1527,6 +1536,170 @@ async function handleUpload() {
     msgBox.className='mt-3 text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2';
     msgBox.textContent='실패: '+(err.message||'오류'); msgBox.classList.remove('hidden');
   } finally { btn.disabled=false; btn.textContent='📤 업로드 실행'; }
+}
+
+function downloadTemplate() {
+  const headers = ['사번','이름','회사명','본부','센터','팀','입사일','재직상태','생년월일'];
+  const samples = [
+    ['10001','홍길동','대웅제약','영업본부','OTC사업센터','약국영업팀','2020-03-01','재직','1990-05-15'],
+    ['10002','김영희','대웅제약','마케팅본부','브랜드마케팅센터','제품전략팀','2018-07-15','재직','1988-11-20'],
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...samples]);
+  ws['!cols'] = [8,8,8,10,14,10,12,8,12].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws, '직원명부');
+  XLSX.writeFile(wb, '직원명부_업로드_템플릿.xlsx');
+}
+
+// ---- 퇴직자 보관함 ----
+async function renderArchive() {
+  const main = document.getElementById('adminMain');
+  main.innerHTML = '<div class="p-8 text-ink-500">로딩 중...</div>';
+
+  const { data } = await sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false});
+  const list = data || [];
+
+  // 연도·분기 맵 구성
+  const periodMap = new Map();
+  list.forEach(r => {
+    if(!r.resignation_date) return;
+    const d = new Date(r.resignation_date);
+    const y = d.getFullYear(), q = Math.ceil((d.getMonth()+1)/3);
+    if(!periodMap.has(y)) periodMap.set(y, new Set());
+    periodMap.get(y).add(q);
+  });
+  const years = Array.from(periodMap.keys()).sort((a,b)=>b-a);
+  if(_archiveYear === null && years.length > 0) _archiveYear = years[0];
+
+  // 필터
+  const filtered = list.filter(r => {
+    if(!r.resignation_date) return false;
+    const d = new Date(r.resignation_date);
+    if(_archiveYear !== null && d.getFullYear() !== _archiveYear) return false;
+    if(_archiveQ > 0 && Math.ceil((d.getMonth()+1)/3) !== _archiveQ) return false;
+    return true;
+  });
+  _archiveData = filtered;
+
+  const total = filtered.length;
+  const completed = filtered.filter(r=>r.completion_status).length;
+  const avgTenure = total ? Math.round(filtered.reduce((s,r)=>s+(r.tenure_months||0),0)/total) : 0;
+  const compRate = total ? Math.round(completed/total*100) : 0;
+  const compColor = compRate>=90?'#16A34A':compRate>=60?'#D97706':'#EF4444';
+
+  function yCount(y) { return list.filter(r=>r.resignation_date&&new Date(r.resignation_date).getFullYear()===y).length; }
+  function qCount(y,q) { return list.filter(r=>{if(!r.resignation_date)return false;const d=new Date(r.resignation_date);return d.getFullYear()===y&&Math.ceil((d.getMonth()+1)/3)===q;}).length; }
+
+  function navItem(label, count, active, onclick) {
+    return `<button onclick="${onclick}" style="width:100%;text-align:left;padding:7px 10px;border:none;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:space-between;${active?'background:#EEF2FF;color:#4f46e5;font-weight:700;':'color:#374151;background:transparent;'}">
+      <span>${label}</span><span style="font-size:11px;color:#9CA3AF;font-weight:400;">${count}</span>
+    </button>`;
+  }
+
+  const leftNavHtml = years.length === 0
+    ? '<div style="font-size:12px;color:#9CA3AF;padding:8px 4px;">데이터 없음</div>'
+    : years.map(y => {
+        const yActive = _archiveYear === y;
+        const quarters = [...(periodMap.get(y)||[])].sort();
+        return navItem(y+'년', yCount(y), yActive, `_archiveYear=${y};_archiveQ=0;renderArchive();`)
+          + (yActive ? quarters.map(q =>
+              `<div style="padding-left:10px;">`
+              + navItem('Q'+q, qCount(y,q), _archiveQ===q, `_archiveYear=${y};_archiveQ=${q};renderArchive();`)
+              + `</div>`
+            ).join('') : '');
+      }).join('');
+
+  const tableRows = filtered.map(r => `
+    <tr style="border-bottom:1px solid #F3F4F6;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background=''">
+      <td style="padding:10px 14px;white-space:nowrap;"><span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;${r.completion_status?'background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;':'background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;'}">${r.completion_status?'완료':'미완료'}</span></td>
+      <td style="padding:10px 14px;white-space:nowrap;font-size:12px;color:#6B7280;">${esc(r.employee_id)}</td>
+      <td style="padding:10px 14px;white-space:nowrap;font-weight:600;color:#111827;">${esc(r.name)}</td>
+      <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${esc(r.division||'-')}</td>
+      <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${esc(r.center||'-')}</td>
+      <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${esc(r.team||'-')}</td>
+      <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${formatDate(r.resignation_date)}</td>
+      <td style="padding:10px 14px;white-space:nowrap;color:#6B7280;">${r.tenure_months!=null?r.tenure_months+'개월':'-'}</td>
+      <td style="padding:10px 14px;text-align:center;">${r.account_deleted?'<span style="color:#16A34A;font-size:14px;">✓</span>':'<span style="color:#D1D5DB;font-size:14px;">○</span>'}</td>
+      <td style="padding:10px 14px;text-align:center;">${r.resignation_letter_submitted?'<span style="color:#16A34A;font-size:14px;">✓</span>':'<span style="color:#D1D5DB;font-size:14px;">○</span>'}</td>
+      <td style="padding:10px 14px;text-align:center;">${r.sap_posted?'<span style="color:#16A34A;font-size:14px;">✓</span>':'<span style="color:#D1D5DB;font-size:14px;">○</span>'}</td>
+    </tr>`).join('');
+
+  main.innerHTML = `
+    <div style="display:flex;min-height:100vh;" class="fade-in">
+      <!-- 기간 내비게이션 -->
+      <div style="width:168px;flex-shrink:0;background:#fff;border-right:1px solid #E5E7EB;padding:18px 10px;overflow-y:auto;position:sticky;top:0;align-self:flex-start;max-height:100vh;box-sizing:border-box;">
+        <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding:0 4px;">연도 · 분기</div>
+        <div style="display:flex;flex-direction:column;gap:1px;">${leftNavHtml}</div>
+      </div>
+      <!-- 콘텐츠 -->
+      <div style="flex:1;padding:28px 32px;overflow:auto;box-sizing:border-box;">
+        <div style="margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1 style="font-size:22px;font-weight:700;color:#111827;">퇴직자 보관함</h1>
+            <div style="font-size:13px;color:#6B7280;margin-top:3px;">${_archiveYear!=null?_archiveYear+'년':''} ${_archiveQ>0?'Q'+_archiveQ+' · ':''}총 ${total}명</div>
+          </div>
+          <button onclick="exportArchive()" style="height:36px;padding:0 16px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#374151;">📥 엑셀 다운로드</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;">
+            <div style="font-size:12px;color:#6B7280;margin-bottom:4px;">퇴직자 수</div>
+            <div style="font-size:28px;font-weight:700;color:#111827;">${total}<span style="font-size:14px;font-weight:400;color:#9CA3AF;margin-left:4px;">명</span></div>
+          </div>
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;">
+            <div style="font-size:12px;color:#6B7280;margin-bottom:4px;">처리 완료율</div>
+            <div style="font-size:28px;font-weight:700;color:${compColor};">${compRate}<span style="font-size:14px;font-weight:400;color:#9CA3AF;margin-left:2px;">%</span></div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${completed} / ${total}건 완료</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;">
+            <div style="font-size:12px;color:#6B7280;margin-bottom:4px;">평균 재직기간</div>
+            <div style="font-size:28px;font-weight:700;color:#111827;">${avgTenure}<span style="font-size:14px;font-weight:400;color:#9CA3AF;margin-left:4px;">개월</span></div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${(avgTenure/12).toFixed(1)}년</div>
+          </div>
+        </div>
+        ${total === 0
+          ? `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:64px;text-align:center;color:#9CA3AF;font-size:14px;">해당 기간의 퇴직자 데이터가 없습니다.</div>`
+          : `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;">
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                  <thead>
+                    <tr style="background:#F9FAFB;border-bottom:1.5px solid #E5E7EB;">
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">상태</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">사번</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">이름</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">본부</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">센터</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">팀</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">퇴사일</th>
+                      <th style="padding:11px 14px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">재직기간</th>
+                      <th style="padding:11px 14px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">계정</th>
+                      <th style="padding:11px 14px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">사직원</th>
+                      <th style="padding:11px 14px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">SAP</th>
+                    </tr>
+                  </thead>
+                  <tbody>${tableRows}</tbody>
+                </table>
+              </div>
+            </div>`}
+      </div>
+    </div>`;
+}
+
+function exportArchive() {
+  if(!_archiveData.length){ alert('다운로드할 데이터가 없습니다.'); return; }
+  const label = (_archiveYear||'전체') + (_archiveQ>0?'_Q'+_archiveQ:'');
+  const rows = _archiveData.map(r=>({
+    상태: r.completion_status?'완료':'미완료',
+    사번: r.employee_id, 이름: r.name,
+    회사명: r.company_name, 본부: r.division, 센터: r.center, 팀: r.team,
+    퇴사일: formatDate(r.resignation_date), 재직기간: r.tenure_months!=null?r.tenure_months+'개월':'-',
+    계정삭제: r.account_deleted?'완료':'미완료',
+    사직원: r.resignation_letter_submitted?'완료':'미완료',
+    SAP: r.sap_posted?'완료':'미완료',
+    등록일: formatDateTime(r.created_at)
+  }));
+  const ws=XLSX.utils.json_to_sheet(rows); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'퇴직자');
+  XLSX.writeFile(wb,`퇴직자_보관함_${label}.xlsx`);
 }
 
 // ---- 권한 관리 ----
