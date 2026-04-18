@@ -150,236 +150,211 @@ async function logout() {
 }
 
 // ============================================================
-// 로그인 화면 (단일 스마트 폼 — @ 입력 시 관리자, 사번 입력 시 직원)
+// 로그인 화면 — 숫자만 입력 시 직원, 그 외 입력 시 관리자
 // ============================================================
 function renderLogin() {
   appMode = null;
   root.innerHTML = `
     <style>
-      .dw-login-wrap {
+      .dw-wrap {
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f1f1f1;
+        background: #EEF2F7;
         padding: 24px;
       }
-      .dw-login-card {
+      .dw-card {
         width: 100%;
-        max-width: 960px;
-        min-height: 580px;
+        max-width: 920px;
+        min-height: 560px;
         display: grid;
-        grid-template-columns: 1.15fr 1fr;
-        border-radius: 20px;
+        grid-template-columns: 1.1fr 1fr;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+        box-shadow: 0 20px 60px rgba(10,30,80,0.18), 0 2px 8px rgba(10,30,80,0.08);
       }
-      .dw-brand-panel {
+      /* ── 왼쪽 브랜드 패널 ── */
+      .dw-left {
         position: relative;
-        background: linear-gradient(155deg, #1a1a1a 0%, #2a2a2a 55%, #3a2a1a 100%);
-        padding: 64px 52px;
+        background: linear-gradient(145deg, #0C2048 0%, #163772 55%, #0D4E8A 100%);
+        padding: 56px 48px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         overflow: hidden;
       }
-      .dw-brand-panel::after {
-        content: "退職";
+      .dw-left::before {
+        content: "";
         position: absolute;
-        right: -40px;
-        bottom: -60px;
-        font-size: 240px;
-        font-weight: 900;
-        color: rgba(255,255,255,0.04);
-        line-height: 1;
+        top: -80px; right: -80px;
+        width: 360px; height: 360px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.04);
         pointer-events: none;
-        user-select: none;
       }
-      .dw-brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 14px;
+      .dw-left::after {
+        content: "";
+        position: absolute;
+        bottom: -40px; right: -40px;
+        width: 220px; height: 220px;
+        background-image: radial-gradient(circle, rgba(255,255,255,0.18) 1.5px, transparent 1.5px);
+        background-size: 20px 20px;
+        pointer-events: none;
       }
-      .dw-brand-logo-mark {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+      .dw-emblem {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.12);
+        border: 1.5px solid rgba(255,255,255,0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; font-weight: 800; color: #fff;
+        letter-spacing: -0.03em;
       }
-      .dw-brand-logo-mark span {
-        display: block;
-        height: 3px;
-        background: #F37321;
-        border-radius: 2px;
-        transition: width 0.3s;
-      }
-      .dw-brand-logo-mark span:nth-child(1) { width: 28px; }
-      .dw-brand-logo-mark span:nth-child(2) { width: 18px; }
-      .dw-brand-logo-text {
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.18em;
+      .dw-brand-name {
+        margin-top: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #fff;
+        color: rgba(255,255,255,0.5);
       }
-      .dw-brand-panel h2 {
-        font-size: 32px;
+      .dw-left-title {
+        font-size: 30px;
         font-weight: 700;
         color: #fff;
-        line-height: 1.25;
-        margin-top: 48px;
+        line-height: 1.3;
+        margin: 0;
       }
-      .dw-brand-panel h2 em {
+      .dw-left-title strong {
         display: block;
-        font-style: normal;
-        color: #F37321;
+        color: #7DD3FC;
+        font-size: 32px;
       }
-      .dw-brand-panel p {
+      .dw-left-desc {
         font-size: 13px;
         color: rgba(255,255,255,0.45);
-        line-height: 1.7;
-        margin-top: 16px;
+        line-height: 1.75;
+        margin-top: 14px;
       }
-      .dw-brand-footer {
+      .dw-left-footer {
         font-size: 11px;
         color: rgba(255,255,255,0.2);
-        letter-spacing: 0.05em;
       }
-      .dw-form-panel {
+      /* ── 오른쪽 폼 패널 ── */
+      .dw-right {
         background: #fff;
-        padding: 64px 56px;
+        padding: 56px 48px;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
-      .dw-form-panel h3 {
-        font-size: 22px;
-        font-weight: 700;
-        color: #111;
-        margin-bottom: 6px;
-      }
-      .dw-form-panel .dw-sub {
-        font-size: 13px;
-        color: #9CA3AF;
-        margin-bottom: 36px;
-        line-height: 1.6;
-      }
-      .dw-field { margin-bottom: 18px; }
-      .dw-field label {
-        display: block;
-        font-size: 12px;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 7px;
-        letter-spacing: 0.03em;
-      }
-      .dw-field input {
-        width: 100%;
-        height: 46px;
-        padding: 0 16px;
-        border: 1.5px solid #E5E7EB;
-        border-radius: 10px;
-        font-size: 14px;
-        font-family: inherit;
-        color: #111;
-        outline: none;
-        transition: border-color 0.15s, box-shadow 0.15s;
-        box-sizing: border-box;
-      }
-      .dw-field input:focus {
-        border-color: #F37321;
-        box-shadow: 0 0 0 3px rgba(243,115,33,0.12);
-      }
-      .dw-hint {
-        font-size: 11px;
-        color: #9CA3AF;
-        margin-top: 5px;
-      }
-      .dw-error {
-        display: none;
-        font-size: 13px;
-        color: #EF4444;
-        background: #FFF5F5;
-        border: 1px solid #FECACA;
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin-bottom: 16px;
-      }
-      .dw-error.visible { display: block; }
-      .dw-btn {
-        width: 100%;
-        height: 48px;
-        background: #F37321;
-        color: #fff;
-        border: none;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 700;
-        font-family: inherit;
-        cursor: pointer;
-        transition: background 0.15s, transform 0.1s;
-        letter-spacing: 0.02em;
-      }
-      .dw-btn:hover { background: #E06515; }
-      .dw-btn:active { transform: scale(0.99); }
-      .dw-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-      .dw-mode-badge {
+      .dw-badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         font-size: 11px;
-        font-weight: 600;
-        padding: 3px 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        padding: 4px 12px;
         border-radius: 20px;
-        margin-bottom: 28px;
-        letter-spacing: 0.05em;
-        transition: all 0.2s;
+        margin-bottom: 24px;
+        transition: background 0.2s, color 0.2s;
       }
-      .dw-mode-badge.emp  { background: #EFF4FF; color: #1E40AF; }
-      .dw-mode-badge.admin { background: #FFF4EE; color: #C05B10; }
-      @media (max-width: 680px) {
-        .dw-login-card { grid-template-columns: 1fr; min-height: auto; }
-        .dw-brand-panel { min-height: 200px; padding: 40px 32px; }
-        .dw-brand-panel h2 { font-size: 24px; margin-top: 24px; }
-        .dw-brand-panel::after { font-size: 160px; }
-        .dw-form-panel { padding: 40px 32px; }
+      .dw-badge.emp   { background: #EFF6FF; color: #1D4ED8; }
+      .dw-badge.admin { background: #F0FDF4; color: #15803D; }
+      .dw-badge .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .dw-right h3 {
+        font-size: 22px; font-weight: 700; color: #0F172A;
+        margin: 0 0 6px;
+      }
+      .dw-right .dw-sub {
+        font-size: 13px; color: #94A3B8;
+        line-height: 1.65; margin-bottom: 32px;
+      }
+      .dw-lbl {
+        display: block; font-size: 12px; font-weight: 600;
+        color: #475569; margin-bottom: 7px;
+      }
+      .dw-inp {
+        width: 100%; height: 46px; padding: 0 14px;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 14px; font-family: inherit; color: #0F172A;
+        outline: none; box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        background: #FAFBFC;
+      }
+      .dw-inp:focus {
+        border-color: #2563EB;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        background: #fff;
+      }
+      .dw-hint { font-size: 11px; color: #94A3B8; margin-top: 5px; }
+      .dw-fld  { margin-bottom: 16px; }
+      .dw-err  {
+        display: none; font-size: 13px; color: #DC2626;
+        background: #FEF2F2; border: 1px solid #FECACA;
+        border-radius: 8px; padding: 10px 14px; margin-bottom: 16px;
+      }
+      .dw-err.on { display: block; }
+      .dw-submit {
+        width: 100%; height: 48px;
+        background: #1D4ED8;
+        color: #fff; border: none; border-radius: 10px;
+        font-size: 15px; font-weight: 700; font-family: inherit;
+        cursor: pointer; letter-spacing: 0.03em;
+        transition: background 0.15s, transform 0.1s;
+      }
+      .dw-submit:hover  { background: #1E40AF; }
+      .dw-submit:active { transform: scale(0.99); }
+      .dw-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+      @media (max-width: 660px) {
+        .dw-card   { grid-template-columns: 1fr; }
+        .dw-left   { min-height: 180px; padding: 36px 32px; }
+        .dw-right  { padding: 40px 32px; }
+        .dw-left-title { font-size: 22px; }
+        .dw-left-title strong { font-size: 24px; }
+        .dw-left::before { display: none; }
       }
     </style>
-    <div class="dw-login-wrap fade-in">
-      <div class="dw-login-card">
-        <!-- 왼쪽 브랜드 패널 -->
-        <div class="dw-brand-panel">
-          <div class="dw-brand-logo">
-            <div class="dw-brand-logo-mark"><span></span><span></span></div>
-            <span class="dw-brand-logo-text">Daewoong · HR</span>
+    <div class="dw-wrap fade-in">
+      <div class="dw-card">
+        <div class="dw-left">
+          <div>
+            <div class="dw-emblem">DW</div>
+            <div class="dw-brand-name">Daewoong Pharmaceutical</div>
           </div>
           <div>
-            <h2>퇴직 관리<em>포털</em></h2>
-            <p>직원 퇴직 접수부터 후임 인재 추천까지,<br/>하나의 플랫폼에서 통합 관리합니다.</p>
+            <h2 class="dw-left-title">HR 통합<strong>퇴직 관리 포털</strong></h2>
+            <p class="dw-left-desc">퇴직 접수부터 후임 인재 추천까지<br/>인사 업무를 하나의 화면에서 처리하세요.</p>
           </div>
-          <span class="dw-brand-footer">© 2026 Daewoong Pharmaceutical · HR Division</span>
+          <span class="dw-left-footer">© 2026 Daewoong Pharmaceutical · HR Division</span>
         </div>
-        <!-- 오른쪽 폼 패널 -->
-        <div class="dw-form-panel">
-          <div id="modeBadge" class="dw-mode-badge emp">직원 모드</div>
+        <div class="dw-right">
+          <div id="dwBadge" class="dw-badge emp"><span class="dot"></span>직원</div>
           <h3>로그인</h3>
-          <p class="dw-sub">사번을 입력하면 직원, 이메일(@)을 입력하면<br/>관리자로 자동 인식합니다.</p>
+          <p class="dw-sub">숫자(사번)를 입력하면 직원,<br/>영문 아이디를 입력하면 관리자로 연결됩니다.</p>
           <form id="smartLoginForm" autocomplete="off">
-            <div class="dw-field">
-              <label id="field1Label">사번 또는 이메일</label>
-              <input id="field1" name="field1" type="text" required
-                placeholder="20231234 또는 admin@daewoong.co.kr" autocomplete="username" />
+            <div class="dw-fld">
+              <label class="dw-lbl" id="f1Label">사번 또는 아이디</label>
+              <input class="dw-inp" id="field1" name="field1" type="text" required
+                placeholder="20231234  또는  admin" autocomplete="username" />
             </div>
-            <div class="dw-field">
-              <label id="field2Label">이름</label>
-              <input id="field2" name="field2" type="text" required
+            <div class="dw-fld">
+              <label class="dw-lbl" id="f2Label">이름</label>
+              <input class="dw-inp" id="field2" name="field2" type="text" required
                 placeholder="홍길동" autocomplete="off" />
-              <p class="dw-hint" id="field2Hint">직원명부의 이름을 그대로 입력해 주세요.</p>
+              <p class="dw-hint" id="f2Hint">직원명부에 등록된 이름을 입력해 주세요.</p>
             </div>
-            <div class="dw-error" id="loginError"></div>
-            <button type="submit" class="dw-btn" id="loginBtn">로그인</button>
+            <div class="dw-err" id="loginErr"></div>
+            <button type="submit" class="dw-submit" id="loginBtn">로그인</button>
           </form>
-          <p style="margin-top:20px;font-size:11px;color:#C4C9D4;text-align:center;">
+          <p style="margin-top:18px;font-size:11px;color:#CBD5E1;text-align:center;">
             문의: hr@daewoong.co.kr · 내선 1234
           </p>
         </div>
@@ -390,29 +365,30 @@ function renderLogin() {
 }
 
 function bindSmartLogin() {
-  const field1 = document.getElementById('field1');
-  const field2 = document.getElementById('field2');
-  const field2Label = document.getElementById('field2Label');
-  const field2Hint = document.getElementById('field2Hint');
-  const modeBadge = document.getElementById('modeBadge');
+  const field1   = document.getElementById('field1');
+  const field2   = document.getElementById('field2');
+  const f2Label  = document.getElementById('f2Label');
+  const f2Hint   = document.getElementById('f2Hint');
+  const badge    = document.getElementById('dwBadge');
 
-  function isAdminMode() { return field1.value.includes('@'); }
+  // 숫자만 → 직원, 그 외 → 관리자
+  function isAdmin() { return field1.value.trim() !== '' && !/^\d+$/.test(field1.value.trim()); }
 
   function updateMode() {
-    if (isAdminMode()) {
-      field2Label.textContent = '비밀번호';
+    if (isAdmin()) {
+      f2Label.textContent = '비밀번호';
       field2.type = 'password';
-      field2.placeholder = '••••••••';
-      field2Hint.textContent = '관리자(HR담당자) 계정으로 로그인합니다.';
-      modeBadge.textContent = '관리자 모드';
-      modeBadge.className = 'dw-mode-badge admin';
+      field2.placeholder = '비밀번호를 입력해 주세요.';
+      f2Hint.textContent = '관리자(HR 담당자) 계정으로 로그인합니다.';
+      badge.innerHTML = '<span class="dot"></span>관리자';
+      badge.className = 'dw-badge admin';
     } else {
-      field2Label.textContent = '이름';
+      f2Label.textContent = '이름';
       field2.type = 'text';
       field2.placeholder = '홍길동';
-      field2Hint.textContent = '직원명부의 이름을 그대로 입력해 주세요.';
-      modeBadge.textContent = '직원 모드';
-      modeBadge.className = 'dw-mode-badge emp';
+      f2Hint.textContent = '직원명부에 등록된 이름을 입력해 주세요.';
+      badge.innerHTML = '<span class="dot"></span>직원';
+      badge.className = 'dw-badge emp';
     }
   }
 
@@ -420,19 +396,20 @@ function bindSmartLogin() {
 
   document.getElementById('smartLoginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const errBox = document.getElementById('loginError');
+    const err = document.getElementById('loginErr');
     const btn = document.getElementById('loginBtn');
-    errBox.classList.remove('visible');
+    err.classList.remove('on');
     btn.disabled = true; btn.textContent = '확인 중...';
 
     const v1 = field1.value.trim();
     const v2 = field2.value.trim();
 
     try {
-      if (isAdminMode()) {
-        // 관리자 경로
-        const { data, error } = await sb.auth.signInWithPassword({ email: v1, password: v2 });
-        if (error) throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
+      if (isAdmin()) {
+        // 관리자: 아이디에 @ 없으면 @daewoong.co.kr 자동 보완
+        const email = v1.includes('@') ? v1 : v1 + '@daewoong.co.kr';
+        const { data, error } = await sb.auth.signInWithPassword({ email, password: v2 });
+        if (error) throw new Error('아이디 또는 비밀번호가 올바르지 않습니다.');
         adminUser = data.user;
         await loadAdminRoles();
         if (adminRoles.length === 0) {
@@ -442,7 +419,7 @@ function bindSmartLogin() {
         appMode = 'admin';
         renderAdminApp();
       } else {
-        // 직원 경로
+        // 직원: 사번 + 이름 RPC
         const { data, error } = await sb.rpc('check_employee_identity', {
           p_employee_id: v1,
           p_name: v2,
@@ -453,12 +430,11 @@ function bindSmartLogin() {
         appMode = 'employee';
         renderPortal();
       }
-    } catch (err) {
-      errBox.textContent = err.message || '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-      errBox.classList.add('visible');
+    } catch (e2) {
+      err.textContent = e2.message || '오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+      err.classList.add('on');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '로그인';
+      btn.disabled = false; btn.textContent = '로그인';
     }
   });
 }
