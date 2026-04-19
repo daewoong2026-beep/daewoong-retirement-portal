@@ -1383,7 +1383,7 @@ function renderResigBody() {
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${formatDate(r.resignation_date)}</td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${formatDate(r.last_working_date)}</td>
       <td style="padding:10px 12px;">
-        <select onchange="updateResigType('${r.id}', this.value)" ${isCancelled?'disabled':''}
+        <select onchange="updateResigType('${r.id}', this.value, event)" ${isCancelled?'disabled':''}
           style="height:28px;padding:0 6px;border:1px solid ${r.resignation_type?'transparent':'#E5E7EB'};border-radius:6px;font-size:12px;background:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#F3F4F6')+'1A':'#fff'};color:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#374151'):'#9CA3AF'};font-weight:${r.resignation_type?'600':'400'};cursor:pointer;outline:none;max-width:120px;">
           <option value="">미분류</option>
           ${RESIG_TYPES.map(t=>`<option value="${t}" ${r.resignation_type===t?'selected':''}>${t}</option>`).join('')}
@@ -1579,11 +1579,27 @@ async function handleNotifClick(id, resigId) {
 }
 
 // 퇴직유형 업데이트
-async function updateResigType(id, type) {
+async function updateResigType(id, type, ev) {
   const val = type || null;
-  await sbAdmin.from('resignation_requests').update({ resignation_type: val }).eq('id', id);
+  const sel = ev?.target || document.querySelector(`select[onchange*="updateResigType('${id}'"]`);
+  const prevBg = sel?.style.background;
+  if(sel){ sel.style.transition='background .2s'; sel.style.background='#FEF3C7'; }
+  const { error } = await sbAdmin.from('resignation_requests').update({ resignation_type: val }).eq('id', id);
+  if(error){
+    if(sel){ sel.style.background='#FEE2E2'; sel.style.color='#991B1B'; }
+    alert('저장 실패: ' + error.message + '\n\nresignation_type 컬럼이 추가되었는지 확인해주세요.');
+    return;
+  }
   const row = adminRows.find(r=>r.id===id);
   if(row) row.resignation_type = val;
+  if(sel){
+    sel.style.background = val ? ((RESIG_TYPE_COLORS[val]||'#F3F4F6')+'1A') : '#fff';
+    sel.style.color = val ? (RESIG_TYPE_COLORS[val]||'#374151') : '#9CA3AF';
+    sel.style.fontWeight = val ? '600' : '400';
+    sel.style.borderColor = val ? 'transparent' : '#E5E7EB';
+    sel.style.outline = '2px solid #10B981';
+    setTimeout(()=>{ sel.style.outline='none'; }, 800);
+  }
 }
 
 // 코멘트 패널 (Figma 스타일 슬라이드 패널)
@@ -2277,21 +2293,39 @@ async function openConnModal(row) {
     return;
   }
 
+  // 관련 geo_reports 병렬 fetch (report_id가 있다면)
+  const reportIds = [...new Set(conns.map(c => c.report_id || c.geo_report_id || c.source_report_id).filter(Boolean))];
+  let reportMap = {};
+  if(reportIds.length){
+    try {
+      const { data: reports } = await sbGeo.from('geo_reports').select('id,title,status,created_at').in('id', reportIds);
+      reportMap = Object.fromEntries((reports||[]).map(r=>[r.id, r]));
+    } catch(e){}
+  }
+
+  const pickRecommender = c => c.recommender_name || c.recommender_email || c.recommended_by || c.submitted_by_name || c.submitted_by || c.created_by_email || c.created_by_name || c.created_by || c.connected_by || c.referrer_name || c.referrer_email || null;
+  const pickReportId = c => c.report_id || c.geo_report_id || c.source_report_id || null;
+
   el.innerHTML = `
     <div class="text-xs text-ink-500 mb-3">총 ${conns.length}명이 연결을 희망했습니다.</div>
-    ${conns.map(c => `
-      <div style="border:1.5px solid #E8EAF6;border-radius:12px;padding:16px;background:#fff;margin-bottom:8px;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+    ${conns.map(c => {
+      const recommender = pickRecommender(c);
+      const reportId = pickReportId(c);
+      const report = reportId ? reportMap[reportId] : null;
+      return `
+      <div style="border:1.5px solid #E8EAF6;border-radius:12px;padding:16px;background:#fff;margin-bottom:10px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
               <span style="font-size:15px;font-weight:800;color:#1C1917;">${esc(c.expert_name || '이름 미제공')}</span>
               <span style="font-size:11px;background:#FFF7ED;color:#DC5B0A;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
+              <span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;${c.status==='accepted'?'background:#F0FDF4;color:#16A34A;':c.status==='rejected'?'background:#FEF2F2;color:#DC2626;':'background:#FFFBEB;color:#D97706;'}">${c.status==='accepted'?'수락':c.status==='rejected'?'거절':'검토중'}</span>
             </div>
             <div style="font-size:12px;color:#6B7280;">${esc(c.expert_org || '')}${c.expert_title ? ' · ' + esc(c.expert_title) : ''}</div>
             ${c.expert_summary ? `<div style="margin-top:8px;font-size:13px;color:#374151;line-height:1.6;padding:10px;background:#F8FAFF;border-radius:8px;">${esc(c.expert_summary)}</div>` : ''}
             ${c.message ? `<div style="margin-top:6px;font-size:12px;color:#F37321;font-style:italic;">"${esc(c.message)}"</div>` : ''}
           </div>
-          <div style="text-right;flex-shrink:0;">
+          <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:11px;color:#94A3B8;">${formatDate(c.created_at)}</div>
             <select onchange="updateConnStatus('${c.id}', this.value)" style="margin-top:6px;font-size:11px;border:1px solid #E5E7EB;border-radius:6px;padding:3px 6px;color:#374151;">
               <option value="pending" ${c.status==='pending'?'selected':''}>검토중</option>
@@ -2300,8 +2334,26 @@ async function openConnModal(row) {
             </select>
           </div>
         </div>
-      </div>
-    `).join('')}
+
+        <!-- 추천자 / 리포트 정보 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px;border-top:1px dashed #E5E7EB;">
+          <div style="padding:8px 12px;background:#F0FDFA;border:1px solid #CCFBF1;border-radius:8px;">
+            <div style="font-size:10px;font-weight:700;color:#0F766E;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px;">👤 추천자</div>
+            ${recommender
+              ? `<div style="font-size:12.5px;color:#134E4A;font-weight:600;word-break:break-all;">${esc(recommender)}</div>`
+              : `<div style="font-size:12px;color:#9CA3AF;">추천자 정보 없음</div>`}
+          </div>
+          <div style="padding:8px 12px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;">
+            <div style="font-size:10px;font-weight:700;color:#9A3412;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px;">📄 거현량 리포트</div>
+            ${report
+              ? `<div style="font-size:12.5px;color:#7C2D12;font-weight:600;word-break:break-word;line-height:1.4;">${esc(report.title||'제목 없음')}</div>
+                 <div style="font-size:10.5px;color:#B45309;margin-top:2px;">${esc(report.status||'')} · ${formatDate(report.created_at)}</div>`
+              : reportId
+                ? `<div style="font-size:11px;color:#6B7280;font-family:monospace;">ID: ${esc(reportId).slice(0,8)}...</div>`
+                : `<div style="font-size:12px;color:#9CA3AF;">연결된 리포트 없음</div>`}
+          </div>
+        </div>
+      </div>`}).join('')}
   `;
 }
 
