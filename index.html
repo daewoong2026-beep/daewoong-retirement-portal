@@ -1347,14 +1347,59 @@ async function renderDashboard() {
   const lastWeek = activeList.filter(r=>{ if(!r.resignation_date) return false; const d=new Date(r.resignation_date); return d>=twoWeeksAgo && d<weekAgo; }).length;
   const wowChg = lastWeek>0 ? Math.round((thisWeek-lastWeek)/lastWeek*100) : (thisWeek>0?100:null);
 
-  // 주요 퇴직 직무급 TOP 3 (position / title / rank 폴백)
-  const rankAgg = {};
-  activeList.forEach(r=>{
-    const k = r.position || r.title || r.rank || r.job_title || '(미지정)';
-    rankAgg[k] = (rankAgg[k]||0) + 1;
-  });
-  const rankTop3 = Object.entries(rankAgg).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  const maxRank = rankTop3[0]?.[1] || 1;
+  // 평균 처리 소요일 (접수 → 퇴사일)
+  const processedItems = activeList.filter(r => r.created_at && r.resignation_date);
+  const avgProcessDays = processedItems.length
+    ? Math.round(processedItems.reduce((s,r)=>{ const d1=new Date(r.created_at), d2=new Date(r.resignation_date); return s + Math.max(0,(d2-d1)/(1000*60*60*24)); }, 0) / processedItems.length)
+    : 0;
+
+  // 시즌성 분석 (월별 합계, 전체 연도 누적)
+  const monthSeason = Array(12).fill(0);
+  activeList.forEach(r => { if(!r.resignation_date) return; monthSeason[new Date(r.resignation_date).getMonth()]++; });
+  const maxSeason = Math.max(...monthSeason, 1);
+  const seasonPeak = monthSeason.indexOf(Math.max(...monthSeason)) + 1;
+
+  // 입사 동기 잔존율 (employees_master 대비 퇴직)
+  let cohortRows = [];
+  try {
+    const { data: emps } = await sbAdmin.from('employees_master').select('hire_date,employment_status').limit(10000);
+    const activeTotals = {};
+    (emps||[]).forEach(e => { if(!e.hire_date) return; if(e.employment_status==='퇴직') return; const y=new Date(e.hire_date).getFullYear(); activeTotals[y] = (activeTotals[y]||0)+1; });
+    const resignedByYear = {};
+    activeList.forEach(r=>{ if(!r.hire_date) return; const y=new Date(r.hire_date).getFullYear(); resignedByYear[y] = (resignedByYear[y]||0)+1; });
+    const allYears = [...new Set([...Object.keys(activeTotals), ...Object.keys(resignedByYear)].map(Number))].sort((a,b)=>b-a).slice(0,6);
+    cohortRows = allYears.map(y => {
+      const act = activeTotals[y]||0, res = resignedByYear[y]||0, total = act + res;
+      const pct = total>0 ? Math.round(act/total*100) : 0;
+      return { year:y, active:act, resigned:res, total, pct };
+    });
+  } catch(e){ console.warn('[cohort]', e?.message); }
+
+  // cohort HTML 미리 빌드 (템플릿 중첩 이슈 회피)
+  const cohortRowsHtml = cohortRows.map(c => {
+    const barColor = c.pct >= 80 ? '#10B981' : c.pct >= 50 ? '#F59E0B' : '#DC2626';
+    return '<tr style="border-bottom:1px solid #F3F4F6;">'
+      + '<td style="padding:7px 10px;font-weight:700;color:#1D1D1F;">'+c.year+'년</td>'
+      + '<td style="padding:7px 10px;text-align:center;color:#374151;">'+c.total+'</td>'
+      + '<td style="padding:7px 10px;text-align:center;color:#059669;font-weight:600;">'+c.active+'</td>'
+      + '<td style="padding:7px 10px;text-align:center;color:#DC2626;font-weight:600;">'+c.resigned+'</td>'
+      + '<td style="padding:7px 10px;"><div style="display:flex;align-items:center;gap:8px;">'
+      + '<div style="flex:1;height:7px;background:#F3F4F6;border-radius:3px;overflow:hidden;">'
+      + '<div style="height:100%;width:'+c.pct+'%;background:'+barColor+';border-radius:3px;"></div></div>'
+      + '<strong style="color:'+barColor+';min-width:36px;text-align:right;">'+c.pct+'%</strong>'
+      + '</div></td></tr>';
+  }).join('');
+  const cohortHtml = cohortRows.length > 0
+    ? '<div style="margin-top:12px;"><div class="chart-card"><h3>🎓 입사 동기 잔존율 (최근 6년)</h3>'
+      + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
+      + '<thead><tr style="background:#FAFAFA;border-bottom:1px solid #E5E7EB;">'
+      + '<th style="padding:6px 10px;text-align:left;font-weight:700;color:#6B7280;">입사 연도</th>'
+      + '<th style="padding:6px 10px;text-align:center;font-weight:700;color:#6B7280;">총 입사자</th>'
+      + '<th style="padding:6px 10px;text-align:center;font-weight:700;color:#6B7280;">재직</th>'
+      + '<th style="padding:6px 10px;text-align:center;font-weight:700;color:#6B7280;">퇴직</th>'
+      + '<th style="padding:6px 10px;text-align:left;font-weight:700;color:#6B7280;width:200px;">잔존율</th>'
+      + '</tr></thead><tbody>' + cohortRowsHtml + '</tbody></table></div></div></div>'
+    : '';
   const typeCountMap = {};
   RESIG_TYPES.forEach(t => typeCountMap[t] = 0);
   typeCountMap['미분류'] = 0;
@@ -1463,6 +1508,11 @@ async function renderDashboard() {
         <div><span class="kpi-val" style="color:${wowChg===null?'#6B7280':wowChg>0?'#DC2626':wowChg<0?'#059669':'#6B7280'};">${thisWeek}</span><span class="kpi-unit">명</span></div>
         <div class="kpi-sub">${wowChg===null ? '지난주 데이터 없음' : (wowChg>0?'▲':wowChg<0?'▼':'•')+' 지난주 대비 '+Math.abs(wowChg)+'% (${lastWeek}명)'.replace('${lastWeek}', lastWeek)}</div>
       </div>
+      <div class="kpi-card c-green">
+        <div class="kpi-lbl">⏳ 평균 처리 소요일</div>
+        <div><span class="kpi-val">${avgProcessDays}</span><span class="kpi-unit">일</span></div>
+        <div class="kpi-sub">접수일 → 퇴사일 평균 (${processedItems.length}건 기준)</div>
+      </div>
       ${cancelled>0?`<div class="kpi-card" style="border-color:#E5E7EB;">
         <div class="kpi-lbl" style="color:#9CA3AF;">취소됨</div>
         <div><span class="kpi-val" style="color:#6B7280;">${cancelled}</span><span class="kpi-unit">건</span></div>
@@ -1496,24 +1546,24 @@ async function renderDashboard() {
       <div class="chart-card"><h3>🏢 본부별 퇴직자 TOP 6</h3><div style="position:relative;height:150px;"><canvas id="cD"></canvas></div></div>
       <div class="chart-card"><h3>🏷️ 퇴직유형 분포</h3><div style="position:relative;height:150px;"><canvas id="cType"></canvas></div></div>
       <div class="chart-card">
-        <h3>👔 주요 퇴직 직무급 TOP 3</h3>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          ${rankTop3.length===0 ? '<div style="font-size:12px;color:#9CA3AF;padding:6px 0;">직무급 데이터 없음</div>' : rankTop3.map((d,i)=>{
-            const pct = Math.round(d[1]/total*100);
-            const barPct = Math.round(d[1]/maxRank*100);
-            const medal = i===0?'🥇':i===1?'🥈':'🥉';
-            return `<div>
-              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:4px;">
-                <span style="font-weight:700;color:#1D1D1F;">${medal} ${esc(d[0])}</span>
-                <span><strong style="color:#DC5B0A;font-size:14px;">${d[1]}</strong><span style="color:#6B7280;">명</span> <span style="color:#9CA3AF;font-size:11px;">(${pct}%)</span></span>
-              </div>
-              <div style="height:6px;background:#F3F4F6;border-radius:3px;overflow:hidden;">
-                <div style="height:100%;width:${barPct}%;background:linear-gradient(90deg,#F37321,#FB923C);border-radius:3px;"></div>
-              </div>
+        <h3>🍂 시즌성 분석 (월별 누적)</h3>
+        <div style="display:flex;align-items:flex-end;gap:3px;height:120px;">
+          ${monthSeason.map((v,i)=>{
+            const pct = (v/maxSeason)*100;
+            const isPeak = (i+1)===seasonPeak && v>0;
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
+              <div style="font-size:9px;color:#6B7280;font-weight:700;margin-bottom:2px;">${v||''}</div>
+              <div style="width:100%;height:${Math.max(pct,2)}%;background:${isPeak?'var(--dw-orange)':'var(--dw-orange-l)'};border-radius:3px 3px 0 0;"></div>
+              <div style="font-size:9.5px;color:#9CA3AF;margin-top:3px;">${i+1}월</div>
             </div>`;
           }).join('')}
         </div>
+        ${monthSeason[seasonPeak-1]>0 ? `<div style="margin-top:6px;font-size:10.5px;color:#DC5B0A;font-weight:700;text-align:center;">피크: ${seasonPeak}월 (${monthSeason[seasonPeak-1]}명)</div>` : ''}
       </div>
+    </div>
+
+    <!-- 입사 동기 잔존율 (추가 행) -->
+    ${cohortHtml}
     </div>
   </div>`;
 
