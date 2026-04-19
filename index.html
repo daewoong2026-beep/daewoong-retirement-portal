@@ -170,6 +170,19 @@ const RESIG_TYPE_COLORS = {
 
   if (!sb) { renderLogin(); return; }
 
+  // 강제 로그아웃 (?signout=1 또는 ?logout=1)
+  const qs = new URLSearchParams(window.location.search);
+  if (qs.has('signout') || qs.has('logout')) {
+    try { await sb.auth.signOut(); } catch(e){}
+    try { clearEmpIdentity(); } catch(e){}
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith('sb-') || k.startsWith('supabase')).forEach(k => localStorage.removeItem(k));
+    } catch(e){}
+    window.history.replaceState({}, '', window.location.pathname);
+    renderLogin();
+    return;
+  }
+
   // 관리자 세션 체크
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
