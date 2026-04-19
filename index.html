@@ -1113,15 +1113,7 @@ function renderSubmitForm(identity) {
         note: fd.get('note') || null,
       });
       if (error) throw error;
-      // 거현량 연동: 열린 포지션 자동 생성
-      await sbGeo.from('open_positions').insert({
-        company_name: emp.company_name || '대웅제약',
-        division: emp.division || '',
-        center: emp.center || '',
-        team: emp.team || '',
-        position_title: [emp.division, emp.center, emp.team].filter(Boolean).join(' > '),
-        is_active: true,
-      });
+      // 거현량 연계는 인사담당자가 퇴직자 관리 페이지에서 수동으로 토글 (자동 생성 중단)
       document.getElementById('doneModal').classList.remove('hidden');
     } catch (err) {
       errBox.textContent = '접수 실패: ' + (err.message || '오류'); errBox.classList.remove('hidden');
@@ -1494,15 +1486,26 @@ function mkBarH(id,l,d,c){ new Chart(document.getElementById(id),{type:'bar',dat
 async function renderResignations() {
   const main = document.getElementById('adminMain');
   main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
-  const [listRes, typeRes] = await Promise.all([
+  const [listRes, typeRes, geoLinkRes] = await Promise.all([
     sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}),
     sbAdmin.from('resignation_requests').select('*'),
+    sbGeo.from('open_positions').select('id,resignation_id,is_active'),
   ]);
   console.log('[renderResignations] view rows:', listRes.data?.length, 'err:', listRes.error);
   console.log('[renderResignations] base rows:', typeRes.data?.length, 'err:', typeRes.error);
   if(typeRes.error) showToast('퇴직자 상세 조회 실패: ' + typeRes.error.message, 'error');
   const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
-  adminRows = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
+  // 거현량 연계 매핑 (resignation_id가 있고 is_active=true인 open_position)
+  const geoLinkMap = {};
+  (geoLinkRes.data||[]).forEach(op => {
+    if(op.resignation_id && op.is_active) geoLinkMap[op.resignation_id] = op.id;
+  });
+  adminRows = (listRes.data || []).map(r => ({
+    ...r,
+    ...(extraMap[r.id]||{}),
+    geo_linked: !!geoLinkMap[r.id],
+    geo_open_position_id: geoLinkMap[r.id] || null,
+  }));
   console.log('[renderResignations] merged adminRows with types:', adminRows.filter(r=>r.resignation_type).length);
   const years    = [...new Set(adminRows.map(r=>r.resignation_date?new Date(r.resignation_date).getFullYear():null).filter(Boolean))].sort().reverse();
   const divisions= [...new Set(adminRows.map(r=>r.division).filter(Boolean))].sort();
@@ -1543,9 +1546,10 @@ async function renderResignations() {
                 <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">계정삭제</th>
                 <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">사직원</th>
                 <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">SAP</th>
+                <th style="padding:11px 10px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;min-width:90px;" title="거현량 사이트 '열린 포지션'에 노출">거현량 연계</th>
                 <th class="resig-col-hide-lg" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">등록일시</th>
                 <th style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:110px;">코멘트</th>
-                <th style="padding:11px 10px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">연결</th>
+                <th style="padding:11px 10px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">희망자</th>
               </tr>
             </thead>
             <tbody id="resigBody"></tbody>
@@ -1606,7 +1610,7 @@ function renderResigBody() {
   const filtered = getFilteredResig();
   document.getElementById('cntBox').innerHTML = `총 <strong style="color:#111827;">${filtered.length}</strong>건`;
   const body = document.getElementById('resigBody');
-  if(!filtered.length){ body.innerHTML=`<tr><td colspan="15" style="text-align:center;padding:48px;color:#9CA3AF;font-size:14px;">조건에 맞는 데이터가 없습니다.</td></tr>`; return; }
+  if(!filtered.length){ body.innerHTML=`<tr><td colspan="16" style="text-align:center;padding:48px;color:#9CA3AF;font-size:14px;">조건에 맞는 데이터가 없습니다.</td></tr>`; return; }
   body.innerHTML = filtered.map(r=>{
     const comments = parseComments(r.note);
     const isCancelled = !!r.is_cancelled;
@@ -1645,6 +1649,12 @@ function renderResigBody() {
       <td style="padding:11px 12px;text-align:center;">${chkBtn(r.id,'account_deleted',r.account_deleted)}</td>
       <td style="padding:11px 12px;text-align:center;">${chkBtn(r.id,'resignation_letter_submitted',r.resignation_letter_submitted)}</td>
       <td style="padding:11px 12px;text-align:center;">${chkBtn(r.id,'sap_posted',r.sap_posted)}</td>
+      <td style="padding:9px 10px;text-align:center;">
+        <button onclick="toggleGeoLink('${r.id}')" id="geo-link-${r.id}" title="${r.geo_linked?'거현량 연계 해제':'거현량 사이트에 공석으로 노출'}"
+          style="display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid ${r.geo_linked?'#F37321':'#E5E7EB'};background:${r.geo_linked?'#FFF7ED':'#fff'};color:${r.geo_linked?'#DC5B0A':'#6B7280'};white-space:nowrap;">
+          ${r.geo_linked?'🔗 연계됨':'+ 연계'}
+        </button>
+      </td>
       <td class="resig-col-hide-lg" style="padding:11px 12px;white-space:nowrap;color:#9CA3AF;font-size:11.5px;">${formatDateTime(r.created_at)}</td>
       <td style="padding:10px 16px;">
         ${comments.length === 0
@@ -2010,6 +2020,56 @@ async function toggleTask(id, field, curr) {
   }
   renderResigBody();
 }
+// 거현량 연계 토글 — 체크하면 open_positions에 공석 활성화
+async function toggleGeoLink(id) {
+  const row = adminRows.find(r=>r.id===id);
+  if(!row) return;
+  const btn = document.getElementById(`geo-link-${id}`);
+  if(btn){ btn.disabled = true; btn.style.opacity = 0.6; }
+
+  try {
+    if(row.geo_linked && row.geo_open_position_id){
+      // 해제: is_active = false
+      const { error } = await sbGeo.from('open_positions')
+        .update({ is_active: false })
+        .eq('id', row.geo_open_position_id);
+      if(error) throw error;
+      row.geo_linked = false;
+      row.geo_open_position_id = null;
+      showToast(`${row.name} 거현량 연계 해제됨`, 'success');
+    } else {
+      // 연계: 기존 open_position이 있으면 활성화, 없으면 새로 생성
+      const { data: existing } = await sbGeo.from('open_positions')
+        .select('id').eq('resignation_id', id).maybeSingle();
+      if(existing){
+        const { error } = await sbGeo.from('open_positions')
+          .update({ is_active: true }).eq('id', existing.id);
+        if(error) throw error;
+        row.geo_open_position_id = existing.id;
+      } else {
+        const { data, error } = await sbGeo.from('open_positions').insert({
+          resignation_id: id,
+          company_name: row.company_name || '대웅제약',
+          division: row.division || '',
+          center: row.center || '',
+          team: row.team || '',
+          position_title: [row.division, row.center, row.team].filter(Boolean).join(' > '),
+          is_active: true,
+        }).select('id').single();
+        if(error) throw error;
+        row.geo_open_position_id = data.id;
+      }
+      row.geo_linked = true;
+      showToast(`${row.name} 거현량 연계 완료 → 거현량 사이트에 공석 노출`, 'success');
+    }
+    renderResigBody();
+  } catch(e) {
+    console.error(e);
+    alert('거현량 연계 처리 실패: ' + (e.message || e));
+    if(btn){ btn.disabled = false; btn.style.opacity = 1; }
+  }
+}
+
 async function adminCancelResignation(id) {
   const row = adminRows.find(r=>r.id===id);
   if(!row) return;
