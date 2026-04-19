@@ -145,12 +145,42 @@
     .resig-table td, .resig-table th { padding:7px 5px !important; font-size:11px !important; }
     .resp-page { padding:16px 14px !important; }
   }
+  /* 확대/모바일 대응 — 심한 확대 시 (CSS 뷰포트 < 900px) */
+  @media (max-width: 900px) {
+    .resig-table td, .resig-table th { padding:6px 4px !important; font-size:10.5px !important; }
+    .resp-page { padding:12px 10px !important; }
+  }
+  @media (max-width: 700px) {
+    .resig-table td, .resig-table th { padding:5px 3px !important; font-size:10px !important; }
+    .resig-table select { font-size:10px !important; height:24px !important; max-width:80px !important; }
+    .resp-page { padding:8px 6px !important; }
+  }
 
   /* 전역 반응형 스케일 — 좁은 화면에서 비율적으로 축소 */
   @media (max-width: 1400px) {
     .db-page { padding:16px 18px !important; }
     .kpi-card { padding:10px 12px !important; }
     .kpi-card .kpi-val { font-size:20px !important; }
+  }
+  @media (max-width: 900px) {
+    .db-page { padding:12px 10px !important; }
+    .kpi-card { padding:8px 10px !important; }
+    .kpi-card .kpi-val { font-size:17px !important; }
+    .kpi-card .kpi-lbl { font-size:9.5px !important; }
+    .ai-box { padding:10px 12px !important; }
+    .alert-card { padding:8px 10px !important; }
+    .chart-card { padding:10px 12px !important; }
+    .chart-card h3 { font-size:11px !important; }
+  }
+  @media (max-width: 700px) {
+    .db-header h1 { font-size:15px !important; }
+    .kpi-card { padding:7px 8px !important; }
+    .kpi-card .kpi-val { font-size:15px !important; }
+    .kpi-card .kpi-unit { font-size:10px !important; }
+  }
+  /* 필터 바가 매우 좁은 화면에서 깨지지 않도록 */
+  @media (max-width: 900px) {
+    select, input[type="text"], input:not([type]) { font-size:12px !important; height:32px !important; }
   }
 
   /* ── 반응형 레이아웃 ── */
