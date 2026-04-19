@@ -34,6 +34,33 @@
   .fade-in { animation: fadeIn 0.25s ease-out; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
   @keyframes slideInRight { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+  /* ── 반응형 레이아웃 ── */
+  .admin-sidebar { width:240px; background:#1C1917; position:fixed; top:44px; left:0; height:calc(100vh - 44px); overflow-y:auto; display:flex; flex-direction:column; z-index:150; transition:transform .25s ease; }
+  .admin-main { flex:1; margin-left:240px; min-height:calc(100vh - 44px); background:#F9FAFB; }
+  .sidebar-backdrop { display:none; position:fixed; top:44px; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:140; }
+  .mobile-menu-btn { display:none; }
+  .topbar-label { font-size:13px; color:#6B7280; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1; }
+  .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+  @media (max-width: 900px) {
+    .admin-sidebar { transform:translateX(-100%); }
+    .admin-sidebar.open { transform:translateX(0); box-shadow:8px 0 32px rgba(0,0,0,.2); }
+    .admin-main { margin-left:0; }
+    .sidebar-backdrop.open { display:block; }
+    .mobile-menu-btn { display:inline-flex !important; }
+    .comment-panel-responsive { width:100vw !important; max-width:100vw !important; }
+  }
+
+  @media (max-width: 640px) {
+    .kpi-grid { grid-template-columns:repeat(2,1fr) !important; }
+    .alert-grid { grid-template-columns:repeat(2,1fr) !important; gap:8px !important; }
+    .chart-grid { grid-template-columns:1fr !important; }
+    .chart-card.wide { grid-column:span 1 !important; }
+    .db-header h1 { font-size:17px !important; }
+    .resp-page { padding:14px 12px !important; }
+    .resp-card { padding:14px !important; }
+  }
 </style>
 </head>
 <body class="bg-ink-50 text-ink-800 min-h-screen">
@@ -890,18 +917,22 @@ function renderAdminApp() {
 
   const _MENU_LABELS = {dashboard:'대시보드',resignations:'퇴직자 관리',archive:'퇴직자 보관함',alerts:'알림 · 미완료',upload:'직원명부 업로드',roles:'권한 관리'};
   root.innerHTML = `
-    <div style="position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid #E5E7EB;z-index:200;display:flex;align-items:center;padding:0 14px;gap:6px;">
-      <button onclick="navBack()" title="뒤로 (Alt+←)" style="width:30px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#6B7280;opacity:${_navPos<=0?.3:1};" ${_navPos<=0?'disabled':''}>
+    <div style="position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid #E5E7EB;z-index:200;display:flex;align-items:center;padding:0 10px;gap:4px;">
+      <button onclick="toggleSidebar()" class="mobile-menu-btn" title="메뉴" style="width:32px;height:32px;border:none;border-radius:7px;cursor:pointer;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <button onclick="navBack()" title="뒤로 (Alt+←)" style="width:30px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#6B7280;opacity:${_navPos<=0?.3:1};flex-shrink:0;" ${_navPos<=0?'disabled':''}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
-      <button onclick="navForward()" title="앞으로 (Alt+→)" style="width:30px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#6B7280;opacity:${_navPos>=_navStack.length-1?.3:1};" ${_navPos>=_navStack.length-1?'disabled':''}>
+      <button onclick="navForward()" title="앞으로 (Alt+→)" style="width:30px;height:30px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#6B7280;opacity:${_navPos>=_navStack.length-1?.3:1};flex-shrink:0;" ${_navPos>=_navStack.length-1?'disabled':''}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </button>
-      <div style="width:1px;height:20px;background:#E5E7EB;margin:0 4px;"></div>
-      <span style="font-size:13px;color:#6B7280;">${_MENU_LABELS[adminView]||''}</span>
+      <div style="width:1px;height:20px;background:#E5E7EB;margin:0 4px;flex-shrink:0;"></div>
+      <span class="topbar-label">${_MENU_LABELS[adminView]||''}</span>
     </div>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
     <div style="display:flex;padding-top:44px;">
-      <aside style="width:240px;background:#1C1917;position:fixed;top:44px;left:0;height:calc(100vh - 44px);overflow-y:auto;display:flex;flex-direction:column;z-index:100;">
+      <aside id="adminSidebar" class="admin-sidebar">
         <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;">
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:32px;height:32px;border-radius:8px;background:#fff;color:#1C1917;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0;">D</div>
@@ -915,7 +946,7 @@ function renderAdminApp() {
           <button onclick="logout()" style="margin-top:10px;border:none;background:none;font-size:12px;color:#6B7280;cursor:pointer;padding:0;">로그아웃 →</button>
         </div>
       </aside>
-      <main id="adminMain" style="flex:1;margin-left:240px;min-height:calc(100vh - 44px);background:#F9FAFB;"></main>
+      <main id="adminMain" class="admin-main"></main>
     </div>
   `;
   renderAdminView();
@@ -942,6 +973,17 @@ async function loadConnBadge() {
 function setAdminView(k) {
   if(!_navLock){ _navStack.splice(_navPos+1); _navStack.push(k); _navPos=_navStack.length-1; }
   adminView=k; renderAdminApp();
+  if(window.innerWidth<=900){ closeSidebar(); }
+}
+function toggleSidebar() {
+  const sb=document.getElementById('adminSidebar'), bd=document.getElementById('sidebarBackdrop');
+  if(!sb||!bd) return;
+  sb.classList.toggle('open'); bd.classList.toggle('open');
+}
+function closeSidebar() {
+  const sb=document.getElementById('adminSidebar'), bd=document.getElementById('sidebarBackdrop');
+  if(sb) sb.classList.remove('open');
+  if(bd) bd.classList.remove('open');
 }
 function navBack() {
   if(_navPos<=0) return;
@@ -1046,6 +1088,7 @@ async function renderDashboard() {
   main.innerHTML = `
   <style>
     .db-page { padding:20px 24px; font-family:'Nanum Gothic',sans-serif; }
+    @media(max-width:640px){ .db-page { padding:14px 12px; } }
     .db-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
     .db-header h1 { font-size:20px; font-weight:800; color:#1C1917; }
     .db-header .ts { font-size:12px; color:#94A3B8; }
@@ -1184,7 +1227,7 @@ async function renderResignations() {
   const centers  = [...new Set(adminRows.map(r=>r.center).filter(Boolean))].sort();
   const teams    = [...new Set(adminRows.map(r=>r.team).filter(Boolean))].sort();
   main.innerHTML = `
-    <div style="padding:28px 32px;width:100%;box-sizing:border-box;" class="fade-in">
+    <div class="fade-in resp-page" style="padding:28px 32px;width:100%;box-sizing:border-box;">
       <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
         <h1 style="font-size:22px;font-weight:700;color:#111827;">퇴직자 관리</h1>
         <button onclick="exportResig()" style="height:36px;padding:0 16px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#374151;">📥 엑셀 다운로드</button>
@@ -1413,6 +1456,7 @@ function openCommentPanel(id, name) {
 
   const panel = document.createElement('div');
   panel.id = 'comment-panel';
+  panel.className = 'comment-panel-responsive';
   panel.style.cssText = 'position:fixed;right:0;top:0;bottom:0;width:380px;max-width:100vw;background:#fff;z-index:999;box-shadow:-6px 0 32px rgba(0,0,0,.14);display:flex;flex-direction:column;animation:slideInRight .2s ease;';
 
   function renderPanel() {
@@ -1602,7 +1646,7 @@ async function renderAlerts() {
   }
 
   main.innerHTML = `
-    <div style="padding:28px 32px;width:100%;box-sizing:border-box;" class="fade-in">
+    <div class="fade-in resp-page" style="padding:28px 32px;width:100%;box-sizing:border-box;">
       <div style="margin-bottom:20px;"><h1 style="font-size:22px;font-weight:700;color:#111827;">알림 · 미완료</h1></div>
       <!-- 탭 헤더 -->
       <div style="display:flex;border-bottom:1px solid #E5E7EB;margin-bottom:20px;gap:0;">
