@@ -380,6 +380,8 @@ let adminRows   = [];     // 퇴직자 목록 캐시
 let _archiveYear = null, _archiveQ = 0, _archiveData = [];
 const _navStack = []; let _navPos = -1; let _navLock = false;
 let _notifications = []; let _notifUnread = 0;
+let _highlightResigIds = new Set();
+let _highlightReason = '';
 
 const RESIG_TYPES = ['자발-이직','자발-개인사정','수습퇴직','권고사직','해고','정년퇴직','계약만료','기타'];
 const RESIG_TYPE_COLORS = {
@@ -1367,29 +1369,33 @@ async function renderDashboard() {
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
     .ai-items { display:flex; flex-direction:column; gap:4px; }
     .ai-item { display:flex; align-items:flex-start; gap:8px; padding:6px 10px; border-radius:8px; border:1px solid transparent; font-size:12px; line-height:1.5; }
-    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
-    .kpi-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:12px; padding:12px 16px; position:relative; overflow:hidden; }
-    .kpi-card::after { content:''; position:absolute; top:0;right:0; width:60px;height:60px; border-radius:0 12px 0 60px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; margin-bottom:20px; }
+    .kpi-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:14px; padding:18px 22px; position:relative; overflow:hidden; }
+    .kpi-card::after { content:''; position:absolute; top:0;right:0; width:70px;height:70px; border-radius:0 14px 0 70px; }
     .kpi-card.c-purple::after { background:rgba(0,0,0,0.04); }
     .kpi-card.c-blue::after   { background:rgba(59,130,246,0.06); }
     .kpi-card.c-amber::after  { background:rgba(245,158,11,0.06); }
     .kpi-card.c-red::after    { background:rgba(239,68,68,0.06); }
     .kpi-card.c-green::after  { background:rgba(16,185,129,0.06); }
-    .kpi-card .kpi-lbl { font-size:10px; font-weight:700; color:#94A3B8; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:5px; }
-    .kpi-card .kpi-val { font-size:24px; font-weight:800; color:#1D1D1F; line-height:1; font-family:'Nanum Gothic',sans-serif; }
-    .kpi-card .kpi-unit { font-size:12px; font-weight:400; color:#94A3B8; margin-left:3px; }
-    .kpi-card .kpi-sub { font-size:11px; color:#94A3B8; margin-top:3px; }
+    .kpi-card .kpi-lbl { font-size:11px; font-weight:700; color:#94A3B8; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
+    .kpi-card .kpi-val { font-size:28px; font-weight:800; color:#1D1D1F; line-height:1.1; font-family:'Nanum Gothic',sans-serif; }
+    .kpi-card .kpi-unit { font-size:13px; font-weight:400; color:#94A3B8; margin-left:4px; }
+    .kpi-card .kpi-sub { font-size:11.5px; color:#94A3B8; margin-top:6px; }
     .kpi-card .kpi-badge { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:20px; margin-top:4px; }
     .kpi-card.c-purple .kpi-val { color:#0066FF; }
     .kpi-card.c-amber .kpi-val  { color:#D97706; }
     .kpi-card.c-red .kpi-val    { color:#DC2626; }
     .kpi-card.c-green .kpi-val  { color:#059669; }
-    .alert-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px; }
-    .alert-card { border-radius:10px; padding:10px 14px; border:1.5px solid; }
-    .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .chart-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:12px; padding:14px 16px; }
+    .alert-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
+    .alert-card { border-radius:12px; padding:14px 18px; border:1.5px solid; transition:.15s; position:relative; }
+    .alert-card.clickable { cursor:pointer; }
+    .alert-card.clickable:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
+    .alert-card .nav-arrow { position:absolute; right:12px; top:12px; font-size:11px; color:rgba(0,0,0,.25); font-weight:600; opacity:0; transition:.15s; }
+    .alert-card.clickable:hover .nav-arrow { opacity:1; }
+    .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .chart-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:14px; padding:20px 22px; }
     .chart-card.wide { grid-column:span 2; }
-    .chart-card h3 { font-size:12px; font-weight:800; color:#374151; margin-bottom:10px; }
+    .chart-card h3 { font-size:13px; font-weight:800; color:#374151; margin-bottom:14px; }
     @media(max-width:900px){ .kpi-grid{grid-template-columns:repeat(2,1fr);} .alert-grid{grid-template-columns:repeat(2,1fr);} .chart-grid{grid-template-columns:1fr;} .chart-card.wide{grid-column:span 1;} }
   </style>
   <div class="db-page fade-in">
@@ -1440,27 +1446,31 @@ async function renderDashboard() {
       </div>`:''}
     </div>
 
-    <!-- 경고 알림 카드 -->
+    <!-- 경고 알림 카드 (클릭 시 퇴직자 관리로 이동 + 해당 인원 강조) -->
     <div class="alert-grid">
-      <div class="alert-card" style="${d5>0?'background:#FEF2F2;border-color:#FCA5A5':'background:#F0FDF4;border-color:#86EFAC'}">
-        <div style="font-size:11px;font-weight:700;color:${d5>0?'#991B1B':'#166534'};margin-bottom:8px;">🚨 D-5 경고</div>
-        <div style="font-size:20px;font-weight:800;color:${d5>0?'#DC2626':'#059669'}">${d5}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11px;color:#94A3B8;margin-top:4px;">5일 이내 처리 필요</div>
+      <div class="alert-card ${d5>0?'clickable':''}" ${d5>0?`onclick="jumpToResignations('d5')"`:''} style="${d5>0?'background:#FEF2F2;border-color:#FCA5A5':'background:#F0FDF4;border-color:#86EFAC'}">
+        <span class="nav-arrow">바로가기 →</span>
+        <div style="font-size:12px;font-weight:700;color:${d5>0?'#991B1B':'#166534'};margin-bottom:10px;">🚨 D-5 경고</div>
+        <div style="font-size:26px;font-weight:800;color:${d5>0?'#DC2626':'#059669'};line-height:1.1;">${d5}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
+        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">5일 이내 처리 필요</div>
       </div>
-      <div class="alert-card" style="${incomplete>0?'background:#FFFBEB;border-color:#FCD34D':'background:#F0FDF4;border-color:#86EFAC'}">
-        <div style="font-size:11px;font-weight:700;color:${incomplete>0?'#92400E':'#166534'};margin-bottom:8px;">⚠️ 미완료</div>
-        <div style="font-size:20px;font-weight:800;color:${incomplete>0?'#D97706':'#059669'}">${incomplete}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11px;color:#94A3B8;margin-top:4px;">인사 처리 미완</div>
+      <div class="alert-card ${incomplete>0?'clickable':''}" ${incomplete>0?`onclick="jumpToResignations('incomplete')"`:''} style="${incomplete>0?'background:#FFFBEB;border-color:#FCD34D':'background:#F0FDF4;border-color:#86EFAC'}">
+        <span class="nav-arrow">바로가기 →</span>
+        <div style="font-size:12px;font-weight:700;color:${incomplete>0?'#92400E':'#166534'};margin-bottom:10px;">⚠️ 미완료</div>
+        <div style="font-size:26px;font-weight:800;color:${incomplete>0?'#D97706':'#059669'};line-height:1.1;">${incomplete}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
+        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">인사 처리 미완</div>
       </div>
-      <div class="alert-card" style="background:#FAFAFA;border-color:#86868B;">
-        <div style="font-size:11px;font-weight:700;color:#1D1D1F;margin-bottom:8px;">📋 SAP 미전표</div>
-        <div style="font-size:20px;font-weight:800;color:#0066FF">${sapTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11px;color:#94A3B8;margin-top:4px;">SAP 포스팅 필요</div>
+      <div class="alert-card ${sapTodo>0?'clickable':''}" ${sapTodo>0?`onclick="jumpToResignations('sap')"`:''} style="background:#FAFAFA;border-color:#86868B;">
+        <span class="nav-arrow">바로가기 →</span>
+        <div style="font-size:12px;font-weight:700;color:#1D1D1F;margin-bottom:10px;">📋 SAP 미전표</div>
+        <div style="font-size:26px;font-weight:800;color:#0066FF;line-height:1.1;">${sapTodo}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
+        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">SAP 포스팅 필요</div>
       </div>
-      <div class="alert-card" style="background:#FAFAFA;border-color:#86868B;">
-        <div style="font-size:11px;font-weight:700;color:#1D1D1F;margin-bottom:8px;">📄 사직원 미제출</div>
-        <div style="font-size:20px;font-weight:800;color:#0066FF">${letterTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11px;color:#94A3B8;margin-top:4px;">서류 수거 필요</div>
+      <div class="alert-card ${letterTodo>0?'clickable':''}" ${letterTodo>0?`onclick="jumpToResignations('letter')"`:''} style="background:#FAFAFA;border-color:#86868B;">
+        <span class="nav-arrow">바로가기 →</span>
+        <div style="font-size:12px;font-weight:700;color:#1D1D1F;margin-bottom:10px;">📄 사직원 미제출</div>
+        <div style="font-size:26px;font-weight:800;color:#0066FF;line-height:1.1;">${letterTodo}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
+        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">서류 수거 필요</div>
       </div>
     </div>
 
@@ -1525,6 +1535,13 @@ async function renderResignations() {
         <h1 style="font-size:22px;font-weight:700;color:#111827;">퇴직자 관리</h1>
         <button onclick="exportResig()" style="height:36px;padding:0 16px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:#374151;">📥 엑셀 다운로드</button>
       </div>
+      ${_highlightResigIds.size > 0 ? `
+        <div style="margin-bottom:16px;padding:12px 16px;background:#FEF3C7;border:1.5px solid #FCD34D;border-radius:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:700;color:#78350F;">${esc(_highlightReason)} · ${_highlightResigIds.size}명</span>
+          <span style="font-size:12px;color:#92400E;flex:1;min-width:200px;">대시보드에서 이동된 항목입니다. 노란 강조된 행을 우선 처리해주세요.</span>
+          <button onclick="_highlightResigIds=new Set();_highlightReason='';renderResignations();" style="height:28px;padding:0 12px;background:#fff;border:1px solid #D97706;color:#92400E;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;">✕ 강조 해제</button>
+        </div>
+      ` : ''}
       <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 18px;margin-bottom:16px;">
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
           <input id="fQ" placeholder="🔍  사번 · 이름 · 조직 검색" style="height:36px;padding:0 12px;width:220px;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;outline:none;flex-shrink:0;" />
@@ -1573,6 +1590,10 @@ async function renderResignations() {
 }
 function selHtml(id,ph,opts){ return `<select id="${id}" class="h-9 px-3 rounded-lg border border-ink-200 text-sm bg-white focus:border-brand outline-none"><option value="">${ph}</option>${opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`; }
 function getFilteredResig() {
+  // 강조된 대시보드 이동 모드 → 해당 행들만 반환
+  if(_highlightResigIds.size > 0){
+    return adminRows.filter(r => _highlightResigIds.has(r.id));
+  }
   const q=document.getElementById('fQ').value.toLowerCase();
   const year=document.getElementById('fYear').value, div=document.getElementById('fDiv').value;
   const ctr=document.getElementById('fCtr').value, tm=document.getElementById('fTeam').value;
@@ -2076,6 +2097,43 @@ async function toggleGeoLink(id) {
     alert('거현량 연계 처리 실패: ' + (e.message || e));
     if(btn){ btn.disabled = false; btn.style.opacity = 1; }
   }
+}
+
+// 대시보드 경고 카드 → 퇴직자 관리 이동 + 강조
+async function jumpToResignations(reason){
+  const now = new Date();
+  const Y = now.getFullYear(), M = now.getMonth();
+  // 최신 adminRows로 필터할 수 없는 시점(첫 클릭 시 비어있을 수 있음)이니 DB에서 직접 조회
+  const [listRes, typeRes] = await Promise.all([
+    sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}),
+    sbAdmin.from('resignation_requests').select('*'),
+  ]);
+  const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
+  const rows = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
+  const activeList = rows.filter(r => !r.is_cancelled);
+  let ids = [];
+  let label = '';
+  switch(reason){
+    case 'd5':
+      ids = activeList.filter(r => r.is_d5_warning).map(r=>r.id);
+      label = '🚨 D-5 경고';
+      break;
+    case 'incomplete':
+      ids = activeList.filter(r => !r.completion_status).map(r=>r.id);
+      label = '⚠️ 미완료';
+      break;
+    case 'sap':
+      ids = activeList.filter(r => !r.sap_posted).map(r=>r.id);
+      label = '📋 SAP 미전표';
+      break;
+    case 'letter':
+      ids = activeList.filter(r => !r.resignation_letter_submitted).map(r=>r.id);
+      label = '📄 사직원 미제출';
+      break;
+  }
+  _highlightResigIds = new Set(ids);
+  _highlightReason = label;
+  setAdminView('resignations');
 }
 
 async function adminCancelResignation(id) {
