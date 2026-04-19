@@ -1058,8 +1058,8 @@ function generateInsights(list, Y, M) {
     insights.push({ level:'info', icon:'🏢', text:`${topDiv[0]}이 전체 퇴직자의 ${pct}%(${topDiv[1]}명)로 가장 높습니다. 해당 본부의 retention 전략 점검을 권장합니다.` });
   }
 
-  if (avgTenure > 0 && avgTenure < 24) insights.push({ level:'warn', icon:'⏱️', text:`평균 재직기간이 ${avgTenure}개월(${(avgTenure/12).toFixed(1)}년)로 짧습니다. 온보딩·조기 이탈 방지 프로그램 검토가 필요합니다.` });
-  else if (avgTenure >= 60) insights.push({ level:'good', icon:'✅', text:`평균 재직기간 ${avgTenure}개월(${(avgTenure/12).toFixed(1)}년)로 장기 근속 비율이 높은 편입니다.` });
+  if (avgTenure > 0 && avgTenure < 24) insights.push({ level:'warn', icon:'⏱️', text:`평균 재직기간이 ${(avgTenure/12).toFixed(1)}년(${avgTenure}개월)로 짧습니다. 온보딩·조기 이탈 방지 프로그램 검토가 필요합니다.` });
+  else if (avgTenure >= 60) insights.push({ level:'good', icon:'✅', text:`평균 재직기간 ${(avgTenure/12).toFixed(1)}년(${avgTenure}개월)으로 장기 근속 비율이 높은 편입니다.` });
 
   if (shortTenure > 0 && tenures.length > 0 && shortTenure / tenures.length > 0.3) {
     insights.push({ level:'warn', icon:'🔍', text:`2년 미만 단기 퇴직자가 ${shortTenure}명(${Math.round(shortTenure/tenures.length*100)}%)으로 높습니다. 채용 프로세스 및 직무 적합도 검토를 권장합니다.` });
@@ -1176,8 +1176,8 @@ async function renderDashboard() {
       </div>
       <div class="kpi-card c-green">
         <div class="kpi-lbl">평균 재직기간</div>
-        <div><span class="kpi-val">${avgTenure}</span><span class="kpi-unit">개월</span></div>
-        <div class="kpi-sub">${(avgTenure/12).toFixed(1)}년</div>
+        <div><span class="kpi-val">${(avgTenure/12).toFixed(1)}</span><span class="kpi-unit">년</span></div>
+        <div class="kpi-sub">${avgTenure}개월 · ${tenures.length}명 기준</div>
       </div>
       <div class="kpi-card ${incomplete>0?'c-amber':'c-green'}">
         <div class="kpi-lbl">처리 현황</div>
@@ -1783,7 +1783,7 @@ async function adminCancelResignation(id) {
 
 function exportResig() {
   const rows = getFilteredResig();
-  const data = rows.map(r=>({ 사번:r.employee_id,이름:r.name,회사명:r.company_name,본부:r.division,센터:r.center,팀:r.team,퇴사일:formatDate(r.resignation_date),근무마감:formatDate(r.last_working_date),계정마감:formatDate(r.account_closing_date),재직개월:r.tenure_months,비고:r.note,계정삭제:r.account_deleted?'완료':'미완료',사직원:r.resignation_letter_submitted?'완료':'미완료',SAP:r.sap_posted?'완료':'미완료',상태:r.status_label,등록:formatDateTime(r.created_at) }));
+  const data = rows.map(r=>({ 사번:r.employee_id,이름:r.name,회사명:r.company_name,본부:r.division,센터:r.center,팀:r.team,퇴사일:formatDate(r.resignation_date),근무마감:formatDate(r.last_working_date),계정마감:formatDate(r.account_closing_date),'재직기간(년)':r.tenure_months!=null?Number((r.tenure_months/12).toFixed(1)):null,비고:r.note,계정삭제:r.account_deleted?'완료':'미완료',사직원:r.resignation_letter_submitted?'완료':'미완료',SAP:r.sap_posted?'완료':'미완료',상태:r.status_label,등록:formatDateTime(r.created_at) }));
   const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'퇴직자'); XLSX.writeFile(wb,`퇴직자_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
@@ -2025,7 +2025,7 @@ async function renderArchive() {
       <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${esc(r.center||'-')}</td>
       <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${esc(r.team||'-')}</td>
       <td style="padding:10px 14px;white-space:nowrap;color:#374151;">${formatDate(r.resignation_date)}</td>
-      <td style="padding:10px 14px;white-space:nowrap;color:#6B7280;">${r.tenure_months!=null?r.tenure_months+'개월':'-'}</td>
+      <td style="padding:10px 14px;white-space:nowrap;color:#6B7280;">${r.tenure_months!=null?(r.tenure_months/12).toFixed(1)+'년':'-'}</td>
       <td style="padding:10px 14px;text-align:center;">${r.account_deleted?'<span style="color:#16A34A;font-size:14px;">✓</span>':'<span style="color:#D1D5DB;font-size:14px;">○</span>'}</td>
       <td style="padding:10px 14px;text-align:center;">${r.resignation_letter_submitted?'<span style="color:#16A34A;font-size:14px;">✓</span>':'<span style="color:#D1D5DB;font-size:14px;">○</span>'}</td>
       <td style="padding:10px 14px;text-align:center;">${r.sap_posted?'<span style="color:#16A34A;font-size:14px;">✓</span>':'<span style="color:#D1D5DB;font-size:14px;">○</span>'}</td>
@@ -2070,8 +2070,8 @@ async function renderArchive() {
           </div>
           <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;">
             <div style="font-size:12px;color:#6B7280;margin-bottom:4px;">평균 재직기간</div>
-            <div style="font-size:28px;font-weight:700;color:#111827;">${avgTenure}<span style="font-size:14px;font-weight:400;color:#9CA3AF;margin-left:4px;">개월</span></div>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${(avgTenure/12).toFixed(1)}년</div>
+            <div style="font-size:28px;font-weight:700;color:#111827;">${(avgTenure/12).toFixed(1)}<span style="font-size:14px;font-weight:400;color:#9CA3AF;margin-left:4px;">년</span></div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${avgTenure}개월</div>
           </div>
         </div>
         ${total === 0
@@ -2109,7 +2109,7 @@ function exportArchive() {
     상태: r.completion_status?'완료':'미완료',
     사번: r.employee_id, 이름: r.name,
     회사명: r.company_name, 본부: r.division, 센터: r.center, 팀: r.team,
-    퇴사일: formatDate(r.resignation_date), 재직기간: r.tenure_months!=null?r.tenure_months+'개월':'-',
+    퇴사일: formatDate(r.resignation_date), 재직기간: r.tenure_months!=null?(r.tenure_months/12).toFixed(1)+'년':'-',
     계정삭제: r.account_deleted?'완료':'미완료',
     사직원: r.resignation_letter_submitted?'완료':'미완료',
     SAP: r.sap_posted?'완료':'미완료',
