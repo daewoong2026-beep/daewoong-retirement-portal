@@ -16,7 +16,7 @@
       extend: {
         colors: {
           ink: { 900:'#0B1220', 800:'#111827', 700:'#1F2937', 600:'#374151', 500:'#6B7280', 400:'#9CA3AF', 300:'#D1D5DB', 200:'#E5E7EB', 100:'#F3F4F6', 50:'#F9FAFB' },
-          brand: { DEFAULT:'#C2410C', light:'#F37321', soft:'#FFF7ED', hover:'#9A3412' },
+          brand: { DEFAULT:'#1D1D1F', light:'#0066FF', soft:'#F5F5F7', hover:'#000000' },
           accent: { gold:'#B59157', green:'#10B981', amber:'#F59E0B', red:'#EF4444' },
         },
         borderRadius: { xl2: '14px' },
@@ -36,7 +36,7 @@
   @keyframes slideInRight { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
 
   /* ── 반응형 레이아웃 ── */
-  .admin-sidebar { width:240px; background:#1C1917; position:fixed; top:44px; left:0; height:calc(100vh - 44px); overflow-y:auto; display:flex; flex-direction:column; z-index:150; transition:transform .25s ease; }
+  .admin-sidebar { width:240px; background:#1D1D1F; position:fixed; top:44px; left:0; height:calc(100vh - 44px); overflow-y:auto; display:flex; flex-direction:column; z-index:150; transition:transform .25s ease; }
   .admin-main { flex:1; margin-left:240px; min-height:calc(100vh - 44px); background:#F9FAFB; }
   .sidebar-backdrop { display:none; position:fixed; top:44px; left:0; right:0; bottom:0; background:rgba(0,0,0,.4); z-index:140; }
   .mobile-menu-btn { display:none; }
@@ -84,7 +84,7 @@
   <div class="bg-white rounded-xl2 shadow-card w-full max-w-2xl fade-in">
     <div class="px-6 pt-6 pb-4 border-b border-ink-100 flex items-start justify-between gap-4">
       <div>
-        <div style="font-size:11px;font-weight:700;color:#F37321;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">거현량 연동 · 연결 희망자</div>
+        <div style="font-size:11px;font-weight:700;color:#0066FF;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">거현량 연동 · 연결 희망자</div>
         <h2 class="text-base font-semibold text-ink-900" id="connModalTitle">연결 희망자 목록</h2>
         <p class="mt-0.5 text-xs text-ink-500" id="connModalSub"></p>
       </div>
@@ -158,8 +158,8 @@ let _notifications = []; let _notifUnread = 0;
 
 const RESIG_TYPES = ['자발-이직','자발-개인사정','수습퇴직','권고사직','해고','정년퇴직','계약만료','기타'];
 const RESIG_TYPE_COLORS = {
-  '자발-이직':'#F37321','자발-개인사정':'#FB923C','수습퇴직':'#DC2626','권고사직':'#8B5CF6',
-  '해고':'#991B1B','정년퇴직':'#0D9488','계약만료':'#F59E0B','기타':'#9CA3AF',
+  '자발-이직':'#0066FF','자발-개인사정':'#5AC8FA','수습퇴직':'#FF3B30','권고사직':'#AF52DE',
+  '해고':'#C62828','정년퇴직':'#34C759','계약만료':'#FF9500','기타':'#8E8E93',
 };
 
 // ============================================================
@@ -239,13 +239,13 @@ function renderLogin() {
         grid-template-columns: 1fr 1fr;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 32px 80px rgba(243,115,33,0.18), 0 4px 16px rgba(0,0,0,0.06);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
       }
 
       /* ── 왼쪽 ── */
       .lg-left {
         position: relative;
-        background: linear-gradient(145deg, #1C1917 0%, #7C2D12 55%, #C2410C 100%);
+        background: linear-gradient(145deg, #000000 0%, #1D1D1F 55%, #3A3A3C 100%);
         padding: 52px 44px;
         display: flex;
         flex-direction: column;
@@ -257,7 +257,7 @@ function renderLogin() {
         top: -90px; right: -90px;
         width: 340px; height: 340px;
         border-radius: 50%;
-        background: rgba(254,215,170,0.12);
+        background: rgba(255,255,255,0.08);
         pointer-events: none;
       }
       .lg-left .deco2 {
@@ -265,7 +265,7 @@ function renderLogin() {
         bottom: -60px; left: -60px;
         width: 240px; height: 240px;
         border-radius: 50%;
-        border: 48px solid rgba(254,215,170,0.08);
+        border: 48px solid rgba(255,255,255,0.06);
         pointer-events: none;
       }
       .lg-left .deco3 {
@@ -273,7 +273,7 @@ function renderLogin() {
         bottom: 80px; right: 30px;
         width: 80px; height: 80px;
         border-radius: 50%;
-        background: rgba(251,146,60,0.14);
+        background: rgba(255,255,255,0.10);
         pointer-events: none;
       }
       .lg-logo {
@@ -313,7 +313,7 @@ function renderLogin() {
         word-break: keep-all;
       }
       .lg-copy h2 span {
-        color: #FDBA74;
+        color: #86868B;
       }
       .lg-copy p {
         font-size: 13px;
@@ -322,8 +322,8 @@ function renderLogin() {
       }
       .lg-tag {
         display: inline-block;
-        background: rgba(254,215,170,0.18);
-        color: #FED7AA;
+        background: rgba(255,255,255,0.12);
+        color: #D2D2D7;
         font-size: 11px;
         font-weight: 700;
         padding: 3px 10px;
@@ -364,14 +364,14 @@ function renderLogin() {
         background: currentColor;
         flex-shrink: 0;
       }
-      .lg-badge.emp   { background: #FFF7ED; color: #DC5B0A; }
+      .lg-badge.emp   { background: #F5F5F7; color: #0066FF; }
       .lg-badge.admin { background: #F0FDF4; color: #059669; }
 
       .lg-right h3 {
         font-family: 'Nanum Gothic', sans-serif;
         font-size: 24px;
         font-weight: 800;
-        color: #1C1917;
+        color: #1D1D1F;
         margin: 0 0 6px;
       }
       .lg-right .sub {
@@ -398,16 +398,16 @@ function renderLogin() {
         border-radius: 10px;
         font-size: 14px;
         font-family: 'Nanum Gothic', sans-serif;
-        color: #1C1917;
+        color: #1D1D1F;
         background: #FAFAFA;
         outline: none;
         box-sizing: border-box;
         transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
       }
       .lg-inp:focus {
-        border-color: #F37321;
+        border-color: #0066FF;
         background: #fff;
-        box-shadow: 0 0 0 3px rgba(243,115,33,0.1);
+        box-shadow: 0 0 0 3px rgba(0,102,255,0.1);
       }
       .lg-hint { font-size: 11px; color: #94A3B8; margin-top: 5px; }
       .lg-err {
@@ -425,7 +425,7 @@ function renderLogin() {
       .lg-btn {
         width: 100%;
         height: 50px;
-        background: linear-gradient(135deg, #DC5B0A 0%, #F37321 100%);
+        background: linear-gradient(135deg, #0052CC 0%, #0066FF 100%);
         color: #fff;
         border: none;
         border-radius: 10px;
@@ -435,7 +435,7 @@ function renderLogin() {
         cursor: pointer;
         letter-spacing: 0.05em;
         transition: opacity 0.15s, transform 0.1s;
-        box-shadow: 0 4px 14px rgba(243,115,33,0.35);
+        box-shadow: 0 4px 14px rgba(0,102,255,0.25);
       }
       .lg-btn:hover   { opacity: 0.92; }
       .lg-btn:active  { transform: scale(0.99); }
@@ -946,7 +946,7 @@ function renderAdminApp() {
       <aside id="adminSidebar" class="admin-sidebar">
         <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:32px;height:32px;border-radius:8px;background:#fff;color:#1C1917;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0;">D</div>
+            <div style="width:32px;height:32px;border-radius:8px;background:#fff;color:#1D1D1F;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0;">D</div>
             <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#6B7280;">Admin</div><div style="font-size:13px;font-weight:600;color:#fff;">퇴직 관리</div></div>
           </div>
         </div>
@@ -1114,29 +1114,29 @@ async function renderDashboard() {
     .db-page { padding:20px 24px; font-family:'Nanum Gothic',sans-serif; }
     @media(max-width:640px){ .db-page { padding:14px 12px; } }
     .db-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-    .db-header h1 { font-size:20px; font-weight:800; color:#1C1917; }
+    .db-header h1 { font-size:20px; font-weight:800; color:#1D1D1F; }
     .db-header .ts { font-size:12px; color:#94A3B8; }
-    .ai-box { background:linear-gradient(135deg,#1C1917 0%,#7C2D12 100%); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
+    .ai-box { background:linear-gradient(135deg,#1D1D1F 0%,#3A3A3C 100%); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
     .ai-box .ai-hd { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-    .ai-box .ai-hd span { font-size:12px; font-weight:800; color:#FDBA74; letter-spacing:0.08em; }
-    .ai-box .ai-hd .dot { width:7px;height:7px;border-radius:50%;background:#FB923C;animation:pulse 2s infinite; }
+    .ai-box .ai-hd span { font-size:12px; font-weight:800; color:#86868B; letter-spacing:0.08em; }
+    .ai-box .ai-hd .dot { width:7px;height:7px;border-radius:50%;background:#0066FF;animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
     .ai-items { display:flex; flex-direction:column; gap:4px; }
     .ai-item { display:flex; align-items:flex-start; gap:8px; padding:6px 10px; border-radius:8px; border:1px solid transparent; font-size:12px; line-height:1.5; }
     .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
     .kpi-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:12px; padding:12px 16px; position:relative; overflow:hidden; }
     .kpi-card::after { content:''; position:absolute; top:0;right:0; width:60px;height:60px; border-radius:0 12px 0 60px; }
-    .kpi-card.c-purple::after { background:rgba(243,115,33,0.06); }
+    .kpi-card.c-purple::after { background:rgba(0,0,0,0.04); }
     .kpi-card.c-blue::after   { background:rgba(59,130,246,0.06); }
     .kpi-card.c-amber::after  { background:rgba(245,158,11,0.06); }
     .kpi-card.c-red::after    { background:rgba(239,68,68,0.06); }
     .kpi-card.c-green::after  { background:rgba(16,185,129,0.06); }
     .kpi-card .kpi-lbl { font-size:10px; font-weight:700; color:#94A3B8; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:5px; }
-    .kpi-card .kpi-val { font-size:24px; font-weight:800; color:#1C1917; line-height:1; font-family:'Nanum Gothic',sans-serif; }
+    .kpi-card .kpi-val { font-size:24px; font-weight:800; color:#1D1D1F; line-height:1; font-family:'Nanum Gothic',sans-serif; }
     .kpi-card .kpi-unit { font-size:12px; font-weight:400; color:#94A3B8; margin-left:3px; }
     .kpi-card .kpi-sub { font-size:11px; color:#94A3B8; margin-top:3px; }
     .kpi-card .kpi-badge { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:20px; margin-top:4px; }
-    .kpi-card.c-purple .kpi-val { color:#DC5B0A; }
+    .kpi-card.c-purple .kpi-val { color:#0066FF; }
     .kpi-card.c-amber .kpi-val  { color:#D97706; }
     .kpi-card.c-red .kpi-val    { color:#DC2626; }
     .kpi-card.c-green .kpi-val  { color:#059669; }
@@ -1208,14 +1208,14 @@ async function renderDashboard() {
         <div style="font-size:20px;font-weight:800;color:${incomplete>0?'#D97706':'#059669'}">${incomplete}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
         <div style="font-size:11px;color:#94A3B8;margin-top:4px;">인사 처리 미완</div>
       </div>
-      <div class="alert-card" style="background:#FFFBF5;border-color:#FDBA74;">
-        <div style="font-size:11px;font-weight:700;color:#B84500;margin-bottom:8px;">📋 SAP 미전표</div>
-        <div style="font-size:20px;font-weight:800;color:#F37321">${sapTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
+      <div class="alert-card" style="background:#FAFAFA;border-color:#86868B;">
+        <div style="font-size:11px;font-weight:700;color:#1D1D1F;margin-bottom:8px;">📋 SAP 미전표</div>
+        <div style="font-size:20px;font-weight:800;color:#0066FF">${sapTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
         <div style="font-size:11px;color:#94A3B8;margin-top:4px;">SAP 포스팅 필요</div>
       </div>
-      <div class="alert-card" style="background:#FFFBF5;border-color:#FDBA74;">
-        <div style="font-size:11px;font-weight:700;color:#B84500;margin-bottom:8px;">📄 사직원 미제출</div>
-        <div style="font-size:20px;font-weight:800;color:#F37321">${letterTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
+      <div class="alert-card" style="background:#FAFAFA;border-color:#86868B;">
+        <div style="font-size:11px;font-weight:700;color:#1D1D1F;margin-bottom:8px;">📄 사직원 미제출</div>
+        <div style="font-size:20px;font-weight:800;color:#0066FF">${letterTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
         <div style="font-size:11px;color:#94A3B8;margin-top:4px;">서류 수거 필요</div>
       </div>
     </div>
@@ -1231,8 +1231,8 @@ async function renderDashboard() {
   const md = Array.from(monthlyMap.entries());
   const byD = groupBy('division');
 
-  new Chart(document.getElementById('cM'),{type:'line',data:{labels:md.map(m=>m[0]),datasets:[{data:md.map(m=>m[1]),borderColor:'#F37321',backgroundColor:'rgba(243,115,33,0.08)',tension:0.4,pointRadius:4,pointBackgroundColor:'#F37321',fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
-  new Chart(document.getElementById('cD'),{type:'bar',data:{labels:byD.map(m=>m[0]),datasets:[{data:byD.map(m=>m[1]),backgroundColor:['#F37321','#0D9488','#8B5CF6','#F59E0B','#10B981','#EC4899'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false}}}}});
+  new Chart(document.getElementById('cM'),{type:'line',data:{labels:md.map(m=>m[0]),datasets:[{data:md.map(m=>m[1]),borderColor:'#0066FF',backgroundColor:'rgba(0,102,255,0.08)',tension:0.4,pointRadius:4,pointBackgroundColor:'#0066FF',fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
+  new Chart(document.getElementById('cD'),{type:'bar',data:{labels:byD.map(m=>m[0]),datasets:[{data:byD.map(m=>m[1]),backgroundColor:['#0066FF','#34C759','#AF52DE','#FF9500','#5AC8FA','#FF2D55'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false}}}}});
   if(typeEntries.length > 0){
     new Chart(document.getElementById('cType'),{type:'doughnut',data:{labels:typeEntries.map(e=>e[0]),datasets:[{data:typeEntries.map(e=>e[1]),backgroundColor:typeEntries.map(e=>RESIG_TYPE_COLORS[e[0]]||'#9CA3AF'),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:10}}}}});
   }
@@ -1242,7 +1242,7 @@ function statCard(l,v,s,tone='default',hint){
   return `<div class="rounded-xl2 border p-5 shadow-soft ${t[tone]}"><div class="text-xs text-ink-500">${esc(l)}</div><div class="mt-2 flex items-baseline gap-1.5"><div class="text-3xl font-semibold text-ink-900 tabular-nums">${v}</div>${s?`<div class="text-sm text-ink-500">${s}</div>`:''}</div>${hint?`<div class="mt-1 text-xs text-ink-500">${hint}</div>`:''}</div>`;
 }
 function chartCard(t,id){ return `<div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5"><div class="text-sm font-semibold text-ink-800 mb-4">${esc(t)}</div><div style="position:relative;height:260px;"><canvas id="${id}"></canvas></div></div>`; }
-function mkLine(id,l,d){ new Chart(document.getElementById(id),{type:'line',data:{labels:l,datasets:[{data:d,borderColor:'#C2410C',backgroundColor:'rgba(194,65,12,0.08)',tension:0.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}}); }
+function mkLine(id,l,d){ new Chart(document.getElementById(id),{type:'line',data:{labels:l,datasets:[{data:d,borderColor:'#1D1D1F',backgroundColor:'rgba(0,102,255,0.08)',tension:0.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}}); }
 function mkBar(id,l,d,c){ new Chart(document.getElementById(id),{type:'bar',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}}); }
 function mkBarH(id,l,d,c){ new Chart(document.getElementById(id),{type:'bar',data:{labels:l,datasets:[{data:d,backgroundColor:c,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}}); }
 
@@ -1403,7 +1403,7 @@ function renderResigBody() {
         ${comments.length === 0
           ? `<button onclick="openCommentPanel('${r.id}','${esc(r.name)}')"
                style="font-size:12px;color:#9CA3AF;background:none;border:1px dashed #D1D5DB;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;transition:.12s;"
-               onmouseover="this.style.color='#F37321';this.style.borderColor='#F37321';"
+               onmouseover="this.style.color='#0066FF';this.style.borderColor='#0066FF';"
                onmouseout="this.style.color='#9CA3AF';this.style.borderColor='#D1D5DB';">+ 코멘트</button>`
           : (() => {
               const last = comments[comments.length-1];
@@ -1422,7 +1422,7 @@ function renderResigBody() {
       </td>
       <td style="padding:13px 16px;text-align:center;white-space:nowrap;">
         <button onclick="openConnModal(adminRows.find(x=>x.id==='${r.id}'))"
-          style="display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:8px;background:linear-gradient(135deg,#DC5B0A,#F37321);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
+          style="display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:8px;background:linear-gradient(135deg,#0052CC,#0066FF);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
           <svg style="width:12px;height:12px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
           연결 희망자
         </button>
@@ -1550,7 +1550,7 @@ function renderNotifDropdown() {
   dd.style.cssText = `position:fixed;top:${rect.bottom+4}px;right:${Math.max(10, window.innerWidth - rect.right)}px;width:360px;max-width:calc(100vw - 20px);max-height:480px;background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);z-index:300;overflow:hidden;display:flex;flex-direction:column;`;
   dd.innerHTML = `
     <div style="padding:14px 16px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:14px;font-weight:700;color:#1C1917;">알림 ${_notifUnread>0?`<span style="color:#DC2626;font-size:12px;margin-left:6px;">●  ${_notifUnread}개 안읽음</span>`:''}</div>
+      <div style="font-size:14px;font-weight:700;color:#1D1D1F;">알림 ${_notifUnread>0?`<span style="color:#DC2626;font-size:12px;margin-left:6px;">●  ${_notifUnread}개 안읽음</span>`:''}</div>
       ${_notifications.length>0?`<button onclick="markAllNotifRead()" style="font-size:11px;color:#6B7280;background:none;border:none;cursor:pointer;">모두 읽음</button>`:''}
     </div>
     <div style="flex:1;overflow-y:auto;">
@@ -1558,17 +1558,17 @@ function renderNotifDropdown() {
         ? `<div style="padding:40px 20px;text-align:center;color:#9CA3AF;font-size:13px;">아직 알림이 없습니다.</div>`
         : _notifications.map(n=>`
           <div onclick="handleNotifClick('${n.id}','${n.resignation_id||''}')"
-            style="padding:12px 16px;border-bottom:1px solid #F9FAFB;cursor:pointer;display:flex;gap:10px;${n.is_read?'':'background:#FFF7ED;'}"
-            onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background='${n.is_read?'transparent':'#FFF7ED'}'">
+            style="padding:12px 16px;border-bottom:1px solid #F9FAFB;cursor:pointer;display:flex;gap:10px;${n.is_read?'':'background:#F0F7FF;'}"
+            onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background='${n.is_read?'transparent':'#F0F7FF'}'">
             <div style="width:32px;height:32px;border-radius:50%;background:#0D9488;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(n.sender_email)}</div>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:12.5px;color:#1C1917;line-height:1.5;">
+              <div style="font-size:12.5px;color:#1D1D1F;line-height:1.5;">
                 <strong>${esc((n.sender_email||'').split('@')[0])}</strong>님이 <strong>${esc(n.employee_name||'')}</strong> 코멘트에서 언급했습니다
               </div>
               <div style="font-size:12px;color:#6B7280;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${renderMentionText(n.comment_text||'')}</div>
               <div style="font-size:11px;color:#9CA3AF;margin-top:4px;">${fmtCommentTime(n.created_at)}</div>
             </div>
-            ${n.is_read?'':'<div style="width:8px;height:8px;border-radius:50%;background:#F37321;flex-shrink:0;margin-top:8px;"></div>'}
+            ${n.is_read?'':'<div style="width:8px;height:8px;border-radius:50%;background:#0066FF;flex-shrink:0;margin-top:8px;"></div>'}
           </div>`).join('')}
     </div>`;
   document.body.appendChild(dd);
@@ -1588,7 +1588,7 @@ async function handleNotifClick(id, resigId) {
 async function updateResigType(id, type, ev) {
   const val = type || null;
   const sel = ev?.target || document.querySelector(`select[onchange*="updateResigType('${id}'"]`);
-  if(sel){ sel.style.transition='background .2s'; sel.style.background='#FEF3C7'; sel.disabled=true; }
+  if(sel){ sel.style.transition='background .2s'; sel.style.background='#F5F5F7'; sel.disabled=true; }
 
   // .select() 로 실제 업데이트된 row 회수
   const { data, error } = await sbAdmin
@@ -1807,7 +1807,7 @@ async function renderAlerts() {
       const isActive = b.dataset.tab === tab;
       b.style.background = isActive ? '#fff' : 'transparent';
       b.style.color = isActive ? '#111827' : '#6B7280';
-      b.style.borderBottom = isActive ? '2px solid #DC5B0A' : '2px solid transparent';
+      b.style.borderBottom = isActive ? '2px solid #0052CC' : '2px solid transparent';
       b.style.fontWeight = isActive ? '700' : '500';
     });
     const body = document.getElementById('alert-tab-body');
@@ -1815,11 +1815,11 @@ async function renderAlerts() {
       body.innerHTML = conns.length === 0
         ? `<div style="padding:48px;text-align:center;color:#9CA3AF;font-size:14px;">신규 연결 희망 요청이 없습니다.</div>`
         : conns.map(c=>`
-          <div style="background:#fff;border:1.5px solid #FDBA74;border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;">
+          <div style="background:#fff;border:1.5px solid #86868B;border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;">
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
                 <span style="font-size:15px;font-weight:700;color:#111827;">${esc(c.expert_name||'이름 미제공')}</span>
-                <span style="font-size:11px;background:#FFF7ED;color:#DC5B0A;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
+                <span style="font-size:11px;background:#F5F5F7;color:#0052CC;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
               </div>
               <div style="font-size:12px;color:#6B7280;">${esc(c.expert_org||'')}${c.expert_title?' · '+esc(c.expert_title):''}</div>
               ${c.expert_summary?`<div style="margin-top:8px;font-size:12.5px;color:#374151;background:#F8FAFF;border-radius:8px;padding:8px 12px;">${esc(c.expert_summary)}</div>`:''}
@@ -1850,7 +1850,7 @@ async function renderAlerts() {
         <button class="alert-tab-btn" data-tab="conn" onclick="(function(b){renderAlertTab_('conn')})(this)"
           style="padding:10px 20px;font-size:13.5px;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;transition:.12s;">
           🔗 거현량 연결 희망
-          ${conns.length>0?`<span style="margin-left:6px;background:#DC5B0A;color:#fff;font-size:10px;font-weight:800;border-radius:9px;padding:1px 6px;">${conns.length}</span>`:''}
+          ${conns.length>0?`<span style="margin-left:6px;background:#0052CC;color:#fff;font-size:10px;font-weight:800;border-radius:9px;padding:1px 6px;">${conns.length}</span>`:''}
         </button>
         <button class="alert-tab-btn" data-tab="d5" onclick="renderAlertTab_('d5')"
           style="padding:10px 20px;font-size:13.5px;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;transition:.12s;">
@@ -1912,7 +1912,7 @@ async function renderUpload() {
       <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-6 mb-8">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <span class="text-sm font-semibold text-ink-900">파일 업로드</span>
-          <button onclick="downloadTemplate()" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;font-size:12.5px;cursor:pointer;color:#F37321;font-weight:600;">
+          <button onclick="downloadTemplate()" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;background:#F5F5F7;border:1px solid #D2D2D7;border-radius:8px;font-size:12.5px;cursor:pointer;color:#0066FF;font-weight:600;">
             📋 업로드 템플릿 다운로드
           </button>
         </div>
@@ -2042,15 +2042,15 @@ async function renderArchive() {
         <!-- 연도 탭 -->
         <div style="display:flex;gap:0;overflow-x:auto;">
           ${years.map(y=>`<button onclick="_archiveYear=${y};_archiveQ=0;renderArchive();"
-            style="padding:9px 18px;border:none;cursor:pointer;font-size:13.5px;border-bottom:2px solid ${_archiveYear===y?'#DC5B0A':'transparent'};background:transparent;color:${_archiveYear===y?'#DC5B0A':'#6B7280'};font-weight:${_archiveYear===y?'700':'500'};white-space:nowrap;transition:.12s;">
-            ${y}년 <span style="font-size:11px;background:${_archiveYear===y?'#FFF7ED':'#F3F4F6'};color:${_archiveYear===y?'#DC5B0A':'#9CA3AF'};border-radius:9px;padding:1px 6px;margin-left:3px;">${yCount(y)}</span>
+            style="padding:9px 18px;border:none;cursor:pointer;font-size:13.5px;border-bottom:2px solid ${_archiveYear===y?'#0052CC':'transparent'};background:transparent;color:${_archiveYear===y?'#0052CC':'#6B7280'};font-weight:${_archiveYear===y?'700':'500'};white-space:nowrap;transition:.12s;">
+            ${y}년 <span style="font-size:11px;background:${_archiveYear===y?'#F5F5F7':'#F3F4F6'};color:${_archiveYear===y?'#0052CC':'#9CA3AF'};border-radius:9px;padding:1px 6px;margin-left:3px;">${yCount(y)}</span>
           </button>`).join('')}
         </div>
         <!-- 분기 서브탭 -->
         ${_archiveYear!==null ? `<div style="display:flex;gap:0;border-top:1px solid #F3F4F6;">
           ${[{q:0,label:'전체'}, ...[...(periodMap.get(_archiveYear)||[])].sort().map(q=>({q,label:'Q'+q}))].map(({q,label})=>`
             <button onclick="_archiveYear=${_archiveYear};_archiveQ=${q};renderArchive();"
-              style="padding:7px 16px;border:none;cursor:pointer;font-size:12.5px;border-bottom:2px solid ${_archiveQ===q?'#DC5B0A':'transparent'};background:transparent;color:${_archiveQ===q?'#DC5B0A':'#9CA3AF'};font-weight:${_archiveQ===q?'700':'400'};white-space:nowrap;">
+              style="padding:7px 16px;border:none;cursor:pointer;font-size:12.5px;border-bottom:2px solid ${_archiveQ===q?'#0052CC':'transparent'};background:transparent;color:${_archiveQ===q?'#0052CC':'#9CA3AF'};font-weight:${_archiveQ===q?'700':'400'};white-space:nowrap;">
               ${label}${q>0?` <span style="font-size:11px;color:#9CA3AF;">${qCount(_archiveYear,q)}</span>`:''}
             </button>`).join('')}
         </div>` : ''}
@@ -2161,13 +2161,13 @@ async function renderRoles() {
 
   main.innerHTML=`
     <div class="fade-in resp-page" style="padding:28px 32px;max-width:1100px;">
-      <div style="margin-bottom:20px;"><h1 style="font-size:22px;font-weight:700;color:#1C1917;">권한 관리</h1></div>
+      <div style="margin-bottom:20px;"><h1 style="font-size:22px;font-weight:700;color:#1D1D1F;">권한 관리</h1></div>
 
       <!-- Role 안내 공지 -->
-      <div style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FED7AA;border-radius:12px;padding:16px 18px;margin-bottom:18px;">
+      <div style="background:linear-gradient(135deg,#F5F5F7,#F0F0F3);border:1px solid #D2D2D7;border-radius:12px;padding:16px 18px;margin-bottom:18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:18px;">📢</span>
-          <div style="font-size:14px;font-weight:700;color:#7C2D12;">Role별 접근 권한 안내</div>
+          <div style="font-size:14px;font-weight:700;color:#1D1D1F;">Role별 접근 권한 안내</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
           ${ROLE_INFO.map(r=>`
@@ -2183,16 +2183,16 @@ async function renderRoles() {
 
       <!-- 권한 부여 -->
       <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px;margin-bottom:16px;">
-        <div style="font-size:14px;font-weight:700;color:#1C1917;margin-bottom:12px;">권한 부여</div>
+        <div style="font-size:14px;font-weight:700;color:#1D1D1F;margin-bottom:12px;">권한 부여</div>
         <div style="display:grid;grid-template-columns:1fr;gap:12px;">
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
             <input id="empIdInput" placeholder="사번 입력 (예: 20231234)" oninput="onEmpIdInput()"
               style="height:40px;padding:0 14px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;outline:none;min-width:220px;flex:1;"
-              onfocus="this.style.borderColor='#F37321'" onblur="this.style.borderColor='#E5E7EB'"/>
+              onfocus="this.style.borderColor='#0066FF'" onblur="this.style.borderColor='#E5E7EB'"/>
             <select id="newRole" style="height:40px;padding:0 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;background:#fff;outline:none;min-width:160px;">
               ${ROLE_INFO.map(r=>`<option value="${r.key}">${r.label}</option>`).join('')}
             </select>
-            <button onclick="grantRole()" id="grantBtn" disabled style="height:40px;padding:0 18px;background:#F37321;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;opacity:0.4;">+ 부여</button>
+            <button onclick="grantRole()" id="grantBtn" disabled style="height:40px;padding:0 18px;background:#0066FF;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;opacity:0.4;">+ 부여</button>
           </div>
           <div id="empPreview"></div>
         </div>
@@ -2201,7 +2201,7 @@ async function renderRoles() {
 
       <!-- 부여된 권한 -->
       <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid #F3F4F6;font-size:14px;font-weight:700;color:#1C1917;">부여된 권한 (${(roles||[]).length})</div>
+        <div style="padding:14px 18px;border-bottom:1px solid #F3F4F6;font-size:14px;font-weight:700;color:#1D1D1F;">부여된 권한 (${(roles||[]).length})</div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead><tr style="background:#F9FAFB;border-bottom:1.5px solid #E5E7EB;">
@@ -2352,13 +2352,13 @@ async function openConnModal(row) {
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-              <span style="font-size:15px;font-weight:800;color:#1C1917;">${esc(c.expert_name || '이름 미제공')}</span>
-              <span style="font-size:11px;background:#FFF7ED;color:#DC5B0A;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
+              <span style="font-size:15px;font-weight:800;color:#1D1D1F;">${esc(c.expert_name || '이름 미제공')}</span>
+              <span style="font-size:11px;background:#F5F5F7;color:#0052CC;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
               <span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;${c.status==='accepted'?'background:#F0FDF4;color:#16A34A;':c.status==='rejected'?'background:#FEF2F2;color:#DC2626;':'background:#FFFBEB;color:#D97706;'}">${c.status==='accepted'?'수락':c.status==='rejected'?'거절':'검토중'}</span>
             </div>
             <div style="font-size:12px;color:#6B7280;">${esc(c.expert_org || '')}${c.expert_title ? ' · ' + esc(c.expert_title) : ''}</div>
             ${c.expert_summary ? `<div style="margin-top:8px;font-size:13px;color:#374151;line-height:1.6;padding:10px;background:#F8FAFF;border-radius:8px;">${esc(c.expert_summary)}</div>` : ''}
-            ${c.message ? `<div style="margin-top:6px;font-size:12px;color:#F37321;font-style:italic;">"${esc(c.message)}"</div>` : ''}
+            ${c.message ? `<div style="margin-top:6px;font-size:12px;color:#0066FF;font-style:italic;">"${esc(c.message)}"</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:11px;color:#94A3B8;">${formatDate(c.created_at)}</div>
@@ -2378,11 +2378,11 @@ async function openConnModal(row) {
               ? `<div style="font-size:12.5px;color:#134E4A;font-weight:600;word-break:break-all;">${esc(recommender)}</div>`
               : `<div style="font-size:12px;color:#9CA3AF;">추천자 정보 없음</div>`}
           </div>
-          <div style="padding:8px 12px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;">
-            <div style="font-size:10px;font-weight:700;color:#9A3412;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px;">📄 거현량 리포트</div>
+          <div style="padding:8px 12px;background:#F5F5F7;border:1px solid #D2D2D7;border-radius:8px;">
+            <div style="font-size:10px;font-weight:700;color:#1D1D1F;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px;">📄 거현량 리포트</div>
             ${report
-              ? `<div style="font-size:12.5px;color:#7C2D12;font-weight:600;word-break:break-word;line-height:1.4;">${esc(report.title||'제목 없음')}</div>
-                 <div style="font-size:10.5px;color:#B45309;margin-top:2px;">${esc(report.status||'')} · ${formatDate(report.created_at)}</div>`
+              ? `<div style="font-size:12.5px;color:#1D1D1F;font-weight:600;word-break:break-word;line-height:1.4;">${esc(report.title||'제목 없음')}</div>
+                 <div style="font-size:10.5px;color:#1D1D1F;margin-top:2px;">${esc(report.status||'')} · ${formatDate(report.created_at)}</div>`
               : reportId
                 ? `<div style="font-size:11px;color:#6B7280;font-family:monospace;">ID: ${esc(reportId).slice(0,8)}...</div>`
                 : `<div style="font-size:12px;color:#9CA3AF;">연결된 리포트 없음</div>`}
