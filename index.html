@@ -35,6 +35,54 @@
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
   @keyframes slideInRight { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
 
+  /* ── 테마 시스템 (data-theme on <html>) ── */
+  :root {
+    --theme-sidebar-bg: #1D1D1F;
+    --theme-sidebar-grad: linear-gradient(145deg, #000000 0%, #1D1D1F 55%, #3A3A3C 100%);
+    --theme-ai-grad: linear-gradient(135deg, #1D1D1F 0%, #3A3A3C 100%);
+    --theme-primary: #0066FF;
+    --theme-primary-hover: #0052CC;
+    --theme-primary-soft: #F0F7FF;
+    --theme-accent-text: #FFFFFF;
+  }
+  html[data-theme="sunset"] {
+    --theme-sidebar-bg: #1C1917;
+    --theme-sidebar-grad: linear-gradient(145deg, #1C1917 0%, #7C2D12 55%, #C2410C 100%);
+    --theme-ai-grad: linear-gradient(135deg, #1C1917 0%, #7C2D12 100%);
+    --theme-primary: #F37321;
+    --theme-primary-hover: #DC5B0A;
+    --theme-primary-soft: #FFF7ED;
+  }
+  html[data-theme="ocean"] {
+    --theme-sidebar-bg: #0A1A33;
+    --theme-sidebar-grad: linear-gradient(145deg, #050D1F 0%, #123466 55%, #1E4A8F 100%);
+    --theme-ai-grad: linear-gradient(135deg, #0A1A33 0%, #1E4A8F 100%);
+    --theme-primary: #0EA5E9;
+    --theme-primary-hover: #0284C7;
+    --theme-primary-soft: #F0F9FF;
+  }
+  html[data-theme="forest"] {
+    --theme-sidebar-bg: #0F2920;
+    --theme-sidebar-grad: linear-gradient(145deg, #0A1F18 0%, #134632 55%, #1F6B4C 100%);
+    --theme-ai-grad: linear-gradient(135deg, #0F2920 0%, #1F6B4C 100%);
+    --theme-primary: #10B981;
+    --theme-primary-hover: #059669;
+    --theme-primary-soft: #F0FDF4;
+  }
+  html[data-theme="royal"] {
+    --theme-sidebar-bg: #1E1B3D;
+    --theme-sidebar-grad: linear-gradient(145deg, #13102A 0%, #312E81 55%, #4F46E5 100%);
+    --theme-ai-grad: linear-gradient(135deg, #1E1B3D 0%, #4F46E5 100%);
+    --theme-primary: #8B5CF6;
+    --theme-primary-hover: #7C3AED;
+    --theme-primary-soft: #F5F3FF;
+  }
+
+  /* 테마 적용 대상 */
+  .admin-sidebar { background: var(--theme-sidebar-bg) !important; }
+  .lg-left       { background: var(--theme-sidebar-grad) !important; }
+  .ai-box        { background: var(--theme-ai-grad) !important; }
+
   /* ── 반응형 레이아웃 ── */
   .admin-sidebar { width:240px; background:#1D1D1F; position:fixed; top:44px; left:0; height:calc(100vh - 44px); overflow-y:auto; display:flex; flex-direction:column; z-index:150; transition:transform .25s ease; }
   .admin-main { flex:1; margin-left:240px; min-height:calc(100vh - 44px); background:#F9FAFB; }
@@ -147,6 +195,50 @@ const root = document.getElementById('root');
 // ============================================================
 // 앱 상태
 // ============================================================
+// 테마 즉시 적용 (페이지 플래시 방지)
+(function(){
+  try { const t=localStorage.getItem('dw-theme')||'mono'; document.documentElement.setAttribute('data-theme', t); } catch(e){}
+})();
+
+const THEMES = [
+  { key:'mono',   label:'모노크롬',   dot:'#1D1D1F' },
+  { key:'sunset', label:'선셋 오렌지', dot:'#F37321' },
+  { key:'ocean',  label:'오션 블루',   dot:'#0EA5E9' },
+  { key:'forest', label:'포레스트',    dot:'#10B981' },
+  { key:'royal',  label:'로얄 퍼플',   dot:'#8B5CF6' },
+];
+
+function setTheme(key) {
+  document.documentElement.setAttribute('data-theme', key);
+  try { localStorage.setItem('dw-theme', key); } catch(e){}
+  document.getElementById('themeDropdown')?.remove();
+  showToast(`테마 변경: ${THEMES.find(t=>t.key===key)?.label||key}`);
+}
+
+function toggleThemeDropdown() {
+  const ex = document.getElementById('themeDropdown');
+  if(ex){ ex.remove(); return; }
+  const btn = document.getElementById('themeBtn');
+  if(!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const current = localStorage.getItem('dw-theme') || 'mono';
+  const dd = document.createElement('div');
+  dd.id = 'themeDropdown';
+  dd.style.cssText = `position:fixed;top:${rect.bottom+4}px;right:${Math.max(10, window.innerWidth - rect.right)}px;width:200px;max-width:calc(100vw - 20px);background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);z-index:300;overflow:hidden;`;
+  dd.innerHTML = `
+    <div style="padding:10px 14px;border-bottom:1px solid #F3F4F6;font-size:12px;font-weight:700;color:#1D1D1F;">🎨 테마 선택</div>
+    ${THEMES.map(t=>`
+      <div onclick="setTheme('${t.key}')" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;${current===t.key?'background:#F5F5F7;font-weight:600;':''}"
+        onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background='${current===t.key?'#F5F5F7':''}'">
+        <span style="width:16px;height:16px;border-radius:50%;background:${t.dot};border:1px solid rgba(0,0,0,.08);flex-shrink:0;"></span>
+        <span style="flex:1;color:#1D1D1F;">${t.label}</span>
+        ${current===t.key?'<span style="color:#0066FF;">✓</span>':''}
+      </div>`).join('')}`;
+  document.body.appendChild(dd);
+  const hide = e=>{ if(!dd.contains(e.target) && e.target.id!=='themeBtn' && !btn.contains(e.target)){ dd.remove(); document.removeEventListener('click', hide); }};
+  setTimeout(()=>document.addEventListener('click', hide), 0);
+}
+
 let appMode     = null;   // 'employee' | 'admin'
 let adminUser   = null;
 let adminRoles  = [];
@@ -924,6 +1016,7 @@ function renderAdminApp() {
     { k:'archive',      label:'퇴직자 보관함',    roles:['hr_admin','hr_viewer','company_admin'] },
     { k:'alerts',       label:'알림 · 미완료',    roles:['hr_admin','hr_viewer','company_admin'] },
     { k:'upload',       label:'직원명부 업로드',  roles:['hr_admin','uploader_admin','company_admin'] },
+    { k:'employees',    label:'직원 명단',        roles:['hr_admin','hr_viewer','uploader_admin','company_admin'] },
     { k:'roles',        label:'권한 관리',        roles:['hr_admin'] },
   ];
   const menuHtml = MENU
@@ -935,7 +1028,7 @@ function renderAdminApp() {
         ${m.k==='alerts' ? `<span id="conn-noti-badge" style="display:none;background:#DC2626;color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;padding:0 4px;align-items:center;justify-content:center;"></span>` : ''}
       </button>`).join('');
 
-  const _MENU_LABELS = {dashboard:'대시보드',resignations:'퇴직자 관리',archive:'퇴직자 보관함',alerts:'알림 · 미완료',upload:'직원명부 업로드',roles:'권한 관리'};
+  const _MENU_LABELS = {dashboard:'대시보드',resignations:'퇴직자 관리',archive:'퇴직자 보관함',alerts:'알림 · 미완료',upload:'직원명부 업로드',employees:'직원 명단',roles:'권한 관리'};
   root.innerHTML = `
     <div style="position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid #E5E7EB;z-index:200;display:flex;align-items:center;padding:0 10px;gap:4px;">
       <button onclick="toggleSidebar()" class="mobile-menu-btn" title="메뉴" style="width:32px;height:32px;border:none;border-radius:7px;cursor:pointer;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;">
@@ -949,7 +1042,8 @@ function renderAdminApp() {
       </button>
       <div style="width:1px;height:20px;background:#E5E7EB;margin:0 4px;flex-shrink:0;"></div>
       <span class="topbar-label">${_MENU_LABELS[adminView]||''}</span>
-      <button id="bellBtn" onclick="toggleNotifDropdown()" title="알림" style="position:relative;width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;margin-left:auto;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">
+      <button id="themeBtn" onclick="toggleThemeDropdown()" title="테마" style="width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;margin-left:auto;font-size:15px;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">🎨</button>
+      <button id="bellBtn" onclick="toggleNotifDropdown()" title="알림" style="position:relative;width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         <span id="notifBadge" style="display:none;position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#DC2626;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;line-height:1;">0</span>
       </button>
@@ -1036,6 +1130,7 @@ function renderAdminView() {
     case 'archive':      renderArchive(); break;
     case 'alerts':       renderAlerts(); break;
     case 'upload':       renderUpload(); break;
+    case 'employees':    renderEmployees(); break;
     case 'roles':        renderRoles(); break;
   }
 }
@@ -1910,79 +2005,99 @@ function alertCard(r,today,urgent) {
 }
 
 // ---- 직원명부 업로드 ----
-let _employeesCache = [];
-
 async function renderUpload() {
   const main = document.getElementById('adminMain');
   main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
-  const [cntRes, logsRes, empsRes] = await Promise.all([
-    sbAdmin.from('employees_master').select('*',{count:'exact',head:true}),
-    sbAdmin.from('employee_upload_logs').select('*').order('uploaded_at',{ascending:false}).limit(20),
-    sbAdmin.from('employees_master').select('employee_id,name,company_name,division,center,team,hire_date,employment_status,birth_date').order('employee_id').limit(5000),
-  ]);
-  const count = cntRes.count;
-  const logs = logsRes.data;
-  _employeesCache = empsRes.data || [];
-  console.log('[renderUpload] emps:', _employeesCache.length, 'err:', empsRes.error);
-
-  const divisions = [...new Set(_employeesCache.map(e=>e.division).filter(Boolean))].sort();
-  const centers   = [...new Set(_employeesCache.map(e=>e.center).filter(Boolean))].sort();
-  const teams     = [...new Set(_employeesCache.map(e=>e.team).filter(Boolean))].sort();
-
+  const { count } = await sbAdmin.from('employees_master').select('*',{count:'exact',head:true});
+  const { data: logs } = await sbAdmin.from('employee_upload_logs').select('*').order('uploaded_at',{ascending:false}).limit(20);
   main.innerHTML = `
-    <div class="fade-in resp-page" style="padding:28px 32px;">
-      <div style="margin-bottom:20px;">
-        <h1 style="font-size:22px;font-weight:700;color:#1D1D1F;">직원명부 업로드</h1>
-        <p style="margin-top:4px;font-size:13px;color:#6E6E73;">월 1회 최신 명부를 업로드합니다. 사번 기준으로 upsert됩니다.</p>
+    <div class="p-8 fade-in">
+      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">직원명부 업로드</h1><p class="mt-1 text-sm text-ink-500">월 1회 최신 명부를 업로드합니다. 사번 기준으로 upsert됩니다.</p></div>
+      <div class="grid md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5"><div class="text-xs text-ink-500">현재 마스터 인원</div><div class="mt-1 text-2xl font-semibold text-ink-900 tabular-nums">${count||0} <span class="text-sm font-normal text-ink-500">명</span></div></div>
+        <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5 md:col-span-2"><div class="text-xs text-ink-500">파일 형식</div><div class="mt-1 text-sm text-ink-700">필수: <span class="font-medium">사번, 이름, 회사명, 본부, 센터, 팀, 입사일, 재직상태</span><span class="text-ink-400"> (생년월일 권장)</span></div></div>
       </div>
-
-      <!-- 요약 KPI -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
-        <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;padding:14px 18px;">
-          <div style="font-size:11px;color:#86868B;font-weight:600;letter-spacing:0.06em;">등록 인원</div>
-          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#1D1D1F;">${count||0}<span style="font-size:13px;font-weight:400;color:#86868B;margin-left:4px;">명</span></div>
-        </div>
-        <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;padding:14px 18px;">
-          <div style="font-size:11px;color:#86868B;font-weight:600;letter-spacing:0.06em;">재직</div>
-          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#34C759;">${_employeesCache.filter(e=>e.employment_status==='재직').length}<span style="font-size:13px;font-weight:400;color:#86868B;margin-left:4px;">명</span></div>
-        </div>
-        <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;padding:14px 18px;">
-          <div style="font-size:11px;color:#86868B;font-weight:600;letter-spacing:0.06em;">본부 수</div>
-          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#1D1D1F;">${divisions.length}<span style="font-size:13px;font-weight:400;color:#86868B;margin-left:4px;">개</span></div>
-        </div>
-      </div>
-
-      <!-- 업로드 영역 -->
-      <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;padding:20px;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-          <span style="font-size:14px;font-weight:700;color:#1D1D1F;">파일 업로드</span>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-6 mb-8">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span class="text-sm font-semibold text-ink-900">파일 업로드</span>
           <button onclick="downloadTemplate()" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;background:#F5F5F7;border:1px solid #D2D2D7;border-radius:8px;font-size:12.5px;cursor:pointer;color:#0066FF;font-weight:600;">
             📋 업로드 템플릿 다운로드
           </button>
         </div>
-        <div style="font-size:11.5px;color:#86868B;margin-bottom:10px;">
-          필수: <strong style="color:#1D1D1F;">사번, 이름, 회사명, 본부, 센터, 팀, 입사일, 재직상태</strong> · 권장: 생년월일
-        </div>
-        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:block;width:100%;font-size:13px;" />
-        <div id="fileInfo" style="margin-top:8px;font-size:13px;color:#374151;display:none;"></div>
-        <div id="uploadMsg" style="margin-top:8px;display:none;"></div>
-        <button onclick="handleUpload()" id="uploadBtn" disabled style="margin-top:12px;height:38px;padding:0 18px;background:#1D1D1F;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5;">📤 업로드 실행</button>
+        <label class="block"><span class="text-sm font-medium text-ink-700">엑셀 파일 선택 (.xlsx)</span>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" class="mt-2 block w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border file:border-ink-200 file:bg-white file:font-medium hover:file:bg-ink-50 transition" />
+        </label>
+        <div id="fileInfo" class="mt-3 text-sm text-ink-600 hidden"></div>
+        <div id="uploadMsg" class="mt-3 hidden"></div>
+        <button onclick="handleUpload()" id="uploadBtn" disabled class="mt-4 h-10 px-5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg text-sm font-medium transition">📤 업로드 실행</button>
+      </div>
+      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-4 border-b border-ink-100 font-semibold text-ink-900">업로드 이력</div>
+        <table class="w-full text-sm"><thead class="bg-ink-50 text-ink-600 text-left"><tr class="border-b border-ink-100"><th class="px-5 py-2.5 font-medium">일시</th><th class="px-5 py-2.5 font-medium">파일명</th><th class="px-5 py-2.5 font-medium">업로더</th><th class="px-5 py-2.5 text-right font-medium">총건</th><th class="px-5 py-2.5 text-right font-medium">신규</th><th class="px-5 py-2.5 text-right font-medium">갱신</th></tr></thead>
+        <tbody>${!logs||logs.length===0?`<tr><td colspan="6" class="px-5 py-8 text-center text-ink-400">이력 없음</td></tr>`:logs.map(l=>`<tr class="border-b border-ink-100"><td class="px-5 py-2.5 tabular-nums">${formatDateTime(l.uploaded_at)}</td><td class="px-5 py-2.5">${esc(l.uploaded_file_name)}</td><td class="px-5 py-2.5 text-ink-500">${esc(l.uploaded_by||'-')}</td><td class="px-5 py-2.5 text-right tabular-nums">${l.total_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-accent-green">${l.inserted_count}</td><td class="px-5 py-2.5 text-right tabular-nums text-brand">${l.updated_count}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+  document.getElementById('fileInput').addEventListener('change', e=>{
+    const f=e.target.files[0]; const info=document.getElementById('fileInfo'); const btn=document.getElementById('uploadBtn');
+    if(f){ info.textContent=`선택됨: ${f.name} (${(f.size/1024).toFixed(1)} KB)`; info.classList.remove('hidden'); btn.disabled=false; }
+  });
+}
+
+// ---- 직원 명단 (시점별 / 배치별) ----
+let _employeesCache = [];
+let _uploadBatches = [];
+let _selectedBatchId = 'all';
+
+async function renderEmployees() {
+  const main = document.getElementById('adminMain');
+  main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
+  const [empsRes, logsRes] = await Promise.all([
+    sbAdmin.from('employees_master').select('employee_id,name,company_name,division,center,team,hire_date,employment_status,birth_date,last_upload_id,updated_at').order('updated_at',{ascending:false}).limit(10000),
+    sbAdmin.from('employee_upload_logs').select('id,uploaded_at,uploaded_file_name,uploaded_by,total_count,inserted_count,updated_count').order('uploaded_at',{ascending:false}).limit(50),
+  ]);
+  _employeesCache = empsRes.data || [];
+  _uploadBatches  = logsRes.data || [];
+
+  const divisions = [...new Set(_employeesCache.map(e=>e.division).filter(Boolean))].sort();
+  const statuses  = [...new Set(_employeesCache.map(e=>e.employment_status).filter(Boolean))].sort();
+
+  main.innerHTML = `
+    <div class="fade-in resp-page" style="padding:28px 32px;">
+      <div style="margin-bottom:20px;">
+        <h1 style="font-size:22px;font-weight:700;color:#1D1D1F;">직원 명단</h1>
+        <p style="margin-top:4px;font-size:13px;color:#6E6E73;">업로드 시점별 · 조직별로 등록된 직원을 조회합니다.</p>
       </div>
 
-      <!-- 등록된 직원 명단 -->
-      <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;overflow:hidden;margin-bottom:16px;">
-        <div style="padding:14px 18px;border-bottom:1px solid #F0F0F3;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <span style="font-size:14px;font-weight:700;color:#1D1D1F;">등록된 직원 명단</span>
+      <!-- 상단 배치 탭 -->
+      <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:11px;color:#86868B;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">📅 업로드 배치 선택</div>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">
+          <button onclick="selectBatch('all')" id="batchBtn-all" style="flex-shrink:0;padding:8px 14px;border:1px solid #E5E5E7;border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer;white-space:nowrap;transition:.12s;">
+            전체 <span style="color:#86868B;font-size:11px;">· ${_employeesCache.length}명</span>
+          </button>
+          ${_uploadBatches.map(b=>{
+            const batchEmps = _employeesCache.filter(e=>e.last_upload_id===b.id).length;
+            return `<button onclick="selectBatch('${b.id}')" id="batchBtn-${b.id}" style="flex-shrink:0;padding:8px 14px;border:1px solid #E5E5E7;border-radius:8px;background:#fff;font-size:12.5px;cursor:pointer;white-space:nowrap;text-align:left;transition:.12s;">
+              <div style="font-weight:600;color:#1D1D1F;">${formatDate(b.uploaded_at)}</div>
+              <div style="font-size:10.5px;color:#86868B;margin-top:1px;">${esc((b.uploaded_file_name||'').slice(0,18))} · ${batchEmps}명</div>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- 필터 + 명단 -->
+      <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;overflow:hidden;">
+        <div style="padding:12px 18px;border-bottom:1px solid #F0F0F3;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="empHeader" style="font-size:14px;font-weight:700;color:#1D1D1F;">전체</span>
           <span id="empListCnt" style="font-size:12px;color:#86868B;"></span>
           <input id="empQ" placeholder="🔍 사번 · 이름 · 소속 검색" oninput="renderEmpList()"
-            style="margin-left:auto;height:34px;padding:0 12px;width:240px;max-width:100%;border:1px solid #D2D2D7;border-radius:8px;font-size:13px;outline:none;"
+            style="margin-left:auto;height:34px;padding:0 12px;width:220px;max-width:100%;border:1px solid #D2D2D7;border-radius:8px;font-size:13px;outline:none;"
             onfocus="this.style.borderColor='#0066FF'" onblur="this.style.borderColor='#D2D2D7'" />
         </div>
         <div style="padding:10px 18px;border-bottom:1px solid #F0F0F3;display:flex;gap:8px;flex-wrap:wrap;">
           <select id="empFDiv" onchange="renderEmpList()" style="height:32px;padding:0 10px;border:1px solid #D2D2D7;border-radius:7px;font-size:12.5px;background:#fff;"><option value="">전체 본부</option>${divisions.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('')}</select>
-          <select id="empFCtr" onchange="renderEmpList()" style="height:32px;padding:0 10px;border:1px solid #D2D2D7;border-radius:7px;font-size:12.5px;background:#fff;"><option value="">전체 센터</option>${centers.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select>
-          <select id="empFTm" onchange="renderEmpList()" style="height:32px;padding:0 10px;border:1px solid #D2D2D7;border-radius:7px;font-size:12.5px;background:#fff;"><option value="">전체 팀</option>${teams.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}</select>
-          <select id="empFSt" onchange="renderEmpList()" style="height:32px;padding:0 10px;border:1px solid #D2D2D7;border-radius:7px;font-size:12.5px;background:#fff;"><option value="">전체 상태</option><option value="재직">재직</option><option value="휴직">휴직</option><option value="퇴직">퇴직</option></select>
+          <select id="empFSt" onchange="renderEmpList()" style="height:32px;padding:0 10px;border:1px solid #D2D2D7;border-radius:7px;font-size:12.5px;background:#fff;"><option value="">전체 상태</option>${statuses.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select>
           <button onclick="exportEmps()" style="margin-left:auto;height:32px;padding:0 12px;background:#F5F5F7;border:1px solid #D2D2D7;border-radius:7px;font-size:12.5px;cursor:pointer;font-weight:600;color:#1D1D1F;">📥 엑셀 내보내기</button>
         </div>
         <div class="table-scroll">
@@ -1995,29 +2110,29 @@ async function renderUpload() {
               <th style="padding:10px 14px;text-align:left;font-weight:600;color:#6E6E73;white-space:nowrap;">팀</th>
               <th style="padding:10px 14px;text-align:left;font-weight:600;color:#6E6E73;white-space:nowrap;">입사일</th>
               <th style="padding:10px 14px;text-align:left;font-weight:600;color:#6E6E73;white-space:nowrap;">상태</th>
-              <th style="padding:10px 14px;text-align:center;font-weight:600;color:#6E6E73;white-space:nowrap;">로그인 정보</th>
+              <th style="padding:10px 14px;text-align:center;font-weight:600;color:#6E6E73;white-space:nowrap;">복사</th>
             </tr></thead>
             <tbody id="empListBody"></tbody>
           </table>
         </div>
       </div>
-
-      <!-- 업로드 이력 -->
-      <div style="background:#fff;border:1px solid #E5E5E7;border-radius:12px;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid #F0F0F3;font-size:14px;font-weight:700;color:#1D1D1F;">업로드 이력</div>
-        <div class="table-scroll">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead><tr style="background:#FAFAFA;border-bottom:1.5px solid #E5E5E7;"><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6E6E73;">일시</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6E6E73;">파일명</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6E6E73;">업로더</th><th style="padding:10px 14px;text-align:right;font-weight:600;color:#6E6E73;">총건</th><th style="padding:10px 14px;text-align:right;font-weight:600;color:#6E6E73;">신규</th><th style="padding:10px 14px;text-align:right;font-weight:600;color:#6E6E73;">갱신</th></tr></thead>
-            <tbody>${!logs||logs.length===0?`<tr><td colspan="6" style="padding:32px;text-align:center;color:#86868B;">이력 없음</td></tr>`:logs.map(l=>`<tr style="border-bottom:1px solid #F0F0F3;"><td style="padding:10px 14px;color:#374151;">${formatDateTime(l.uploaded_at)}</td><td style="padding:10px 14px;">${esc(l.uploaded_file_name)}</td><td style="padding:10px 14px;color:#6E6E73;">${esc(l.uploaded_by||'-')}</td><td style="padding:10px 14px;text-align:right;">${l.total_count}</td><td style="padding:10px 14px;text-align:right;color:#34C759;">${l.inserted_count}</td><td style="padding:10px 14px;text-align:right;color:#0066FF;">${l.updated_count}</td></tr>`).join('')}</tbody>
-          </table>
-        </div>
-      </div>
     </div>`;
+  selectBatch(_selectedBatchId);
+}
 
-  document.getElementById('fileInput').addEventListener('change', e=>{
-    const f=e.target.files[0]; const info=document.getElementById('fileInfo'); const btn=document.getElementById('uploadBtn');
-    if(f){ info.textContent=`선택됨: ${f.name} (${(f.size/1024).toFixed(1)} KB)`; info.style.display='block'; btn.disabled=false; btn.style.opacity=1; }
+function selectBatch(batchId) {
+  _selectedBatchId = batchId;
+  document.querySelectorAll('[id^="batchBtn-"]').forEach(b=>{
+    b.style.background='#fff'; b.style.borderColor='#E5E5E7'; b.style.color='';
   });
+  const active = document.getElementById(`batchBtn-${batchId}`);
+  if(active){ active.style.background='#1D1D1F'; active.style.borderColor='#1D1D1F'; active.style.color='#fff'; active.querySelectorAll('*').forEach(el=>el.style.color='#fff'); }
+  const hdr = document.getElementById('empHeader');
+  if(batchId==='all'){ hdr.textContent = '전체 직원'; }
+  else {
+    const b = _uploadBatches.find(x=>x.id===batchId);
+    hdr.textContent = b ? `${formatDate(b.uploaded_at)} 업로드 배치` : '배치';
+  }
   renderEmpList();
 }
 
@@ -2026,13 +2141,10 @@ function renderEmpList() {
   if(!body) return;
   const q  = (document.getElementById('empQ')?.value||'').toLowerCase().trim();
   const fd = document.getElementById('empFDiv')?.value||'';
-  const fc = document.getElementById('empFCtr')?.value||'';
-  const ft = document.getElementById('empFTm')?.value||'';
   const fs = document.getElementById('empFSt')?.value||'';
   const filtered = _employeesCache.filter(e=>{
+    if(_selectedBatchId!=='all' && e.last_upload_id!==_selectedBatchId) return false;
     if(fd && e.division!==fd) return false;
-    if(fc && e.center!==fc) return false;
-    if(ft && e.team!==ft) return false;
     if(fs && e.employment_status!==fs) return false;
     if(q){ const h = `${e.employee_id||''} ${e.name||''} ${e.division||''} ${e.center||''} ${e.team||''}`.toLowerCase(); if(!h.includes(q)) return false; }
     return true;
@@ -2051,7 +2163,7 @@ function renderEmpList() {
       <td style="padding:10px 14px;color:#6E6E73;white-space:nowrap;">${formatDate(e.hire_date)}</td>
       <td style="padding:10px 14px;"><span style="display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;background:${stBg};color:${stColor};">${esc(e.employment_status||'-')}</span></td>
       <td style="padding:10px 14px;text-align:center;">
-        <button onclick="copyLoginInfo('${esc(e.employee_id)}','${esc(e.name)}')" style="font-size:11px;padding:4px 10px;background:#F5F5F7;border:1px solid #D2D2D7;border-radius:6px;cursor:pointer;color:#1D1D1F;font-weight:600;">📋 복사</button>
+        <button onclick="copyLoginInfo('${esc(e.employee_id)}','${esc(e.name)}')" title="로그인 정보 복사" style="font-size:11px;padding:4px 10px;background:#F5F5F7;border:1px solid #D2D2D7;border-radius:6px;cursor:pointer;color:#1D1D1F;font-weight:600;">📋</button>
       </td>
     </tr>`;
   }).join('') + (filtered.length>500?`<tr><td colspan="8" style="padding:10px;text-align:center;color:#86868B;font-size:12px;">... 상위 500명만 표시 (총 ${filtered.length}명)</td></tr>`:'');
@@ -2064,7 +2176,7 @@ function copyLoginInfo(empId, name) {
 }
 
 function exportEmps() {
-  const data = _employeesCache.map(e=>({ 사번:e.employee_id, 이름:e.name, 회사명:e.company_name, 본부:e.division, 센터:e.center, 팀:e.team, 입사일:formatDate(e.hire_date), 재직상태:e.employment_status, 생년월일:formatDate(e.birth_date) }));
+  const data = _employeesCache.filter(e => _selectedBatchId==='all' || e.last_upload_id===_selectedBatchId).map(e=>({ 사번:e.employee_id, 이름:e.name, 회사명:e.company_name, 본부:e.division, 센터:e.center, 팀:e.team, 입사일:formatDate(e.hire_date), 재직상태:e.employment_status, 생년월일:formatDate(e.birth_date) }));
   const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'직원명부'); XLSX.writeFile(wb,`직원명부_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 const HDR_MAP={'사번':'employee_id','이름':'name','회사명':'company_name','본부':'division','센터':'center','팀':'team','입사일':'hire_date','재직상태':'employment_status','생년월일':'birth_date'};
