@@ -1074,10 +1074,9 @@ async function renderDashboard() {
   main.innerHTML = `<div class="p-8 flex items-center gap-3 text-ink-500"><div class="w-5 h-5 rounded-full border-2 border-ink-200 border-t-brand animate-spin"></div>분석 중...</div>`;
   const [listRes, typeRes] = await Promise.all([
     sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}).limit(2000),
-    sbAdmin.from('resignation_requests').select('id,resignation_type,is_cancelled'),
+    sbAdmin.from('resignation_requests').select('*').limit(2000),
   ]);
-  console.log('[renderDashboard] view rows:', listRes.data?.length, 'type rows:', typeRes.data?.length, 'type err:', typeRes.error);
-  console.log('[renderDashboard] type samples:', typeRes.data?.filter(r=>r.resignation_type).slice(0,5));
+  console.log('[renderDashboard] view rows:', listRes.data?.length, 'base rows:', typeRes.data?.length, 'err:', typeRes.error);
   const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
   const list = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
   console.log('[renderDashboard] merged list with types:', list.filter(r=>r.resignation_type).length);
@@ -1253,11 +1252,11 @@ async function renderResignations() {
   main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
   const [listRes, typeRes] = await Promise.all([
     sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}),
-    sbAdmin.from('resignation_requests').select('id,resignation_type,is_cancelled,cancelled_at,cancelled_by,cancel_reason'),
+    sbAdmin.from('resignation_requests').select('*'),
   ]);
   console.log('[renderResignations] view rows:', listRes.data?.length, 'err:', listRes.error);
-  console.log('[renderResignations] type rows:', typeRes.data?.length, 'err:', typeRes.error, 'sample:', typeRes.data?.slice(0,3));
-  if(typeRes.error) showToast('퇴직유형 조회 실패: ' + typeRes.error.message, 'error');
+  console.log('[renderResignations] base rows:', typeRes.data?.length, 'err:', typeRes.error);
+  if(typeRes.error) showToast('퇴직자 상세 조회 실패: ' + typeRes.error.message, 'error');
   const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
   adminRows = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
   console.log('[renderResignations] merged adminRows with types:', adminRows.filter(r=>r.resignation_type).length);
