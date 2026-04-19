@@ -57,7 +57,7 @@
   <div class="bg-white rounded-xl2 shadow-card w-full max-w-2xl fade-in">
     <div class="px-6 pt-6 pb-4 border-b border-ink-100 flex items-start justify-between gap-4">
       <div>
-        <div style="font-size:11px;font-weight:700;color:#6366f1;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">거현량 연동 · 연결 희망자</div>
+        <div style="font-size:11px;font-weight:700;color:#F37321;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">거현량 연동 · 연결 희망자</div>
         <h2 class="text-base font-semibold text-ink-900" id="connModalTitle">연결 희망자 목록</h2>
         <p class="mt-0.5 text-xs text-ink-500" id="connModalSub"></p>
       </div>
@@ -205,13 +205,13 @@ function renderLogin() {
         grid-template-columns: 1fr 1fr;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 32px 80px rgba(79,70,229,0.18), 0 4px 16px rgba(0,0,0,0.06);
+        box-shadow: 0 32px 80px rgba(243,115,33,0.18), 0 4px 16px rgba(0,0,0,0.06);
       }
 
       /* ── 왼쪽 ── */
       .lg-left {
         position: relative;
-        background: linear-gradient(145deg, #1e1b4b 0%, #312e81 55%, #4338ca 100%);
+        background: linear-gradient(145deg, #1C1917 0%, #7C2D12 55%, #C2410C 100%);
         padding: 52px 44px;
         display: flex;
         flex-direction: column;
@@ -223,7 +223,7 @@ function renderLogin() {
         top: -90px; right: -90px;
         width: 340px; height: 340px;
         border-radius: 50%;
-        background: rgba(165,180,252,0.1);
+        background: rgba(254,215,170,0.12);
         pointer-events: none;
       }
       .lg-left .deco2 {
@@ -231,7 +231,7 @@ function renderLogin() {
         bottom: -60px; left: -60px;
         width: 240px; height: 240px;
         border-radius: 50%;
-        border: 48px solid rgba(165,180,252,0.07);
+        border: 48px solid rgba(254,215,170,0.08);
         pointer-events: none;
       }
       .lg-left .deco3 {
@@ -239,7 +239,7 @@ function renderLogin() {
         bottom: 80px; right: 30px;
         width: 80px; height: 80px;
         border-radius: 50%;
-        background: rgba(129,140,248,0.12);
+        background: rgba(251,146,60,0.14);
         pointer-events: none;
       }
       .lg-logo {
@@ -279,7 +279,7 @@ function renderLogin() {
         word-break: keep-all;
       }
       .lg-copy h2 span {
-        color: #a5b4fc;
+        color: #FDBA74;
       }
       .lg-copy p {
         font-size: 13px;
@@ -288,8 +288,8 @@ function renderLogin() {
       }
       .lg-tag {
         display: inline-block;
-        background: rgba(165,180,252,0.15);
-        color: #c7d2fe;
+        background: rgba(254,215,170,0.18);
+        color: #FED7AA;
         font-size: 11px;
         font-weight: 700;
         padding: 3px 10px;
@@ -330,14 +330,14 @@ function renderLogin() {
         background: currentColor;
         flex-shrink: 0;
       }
-      .lg-badge.emp   { background: #EEF2FF; color: #4338CA; }
+      .lg-badge.emp   { background: #FFF7ED; color: #DC5B0A; }
       .lg-badge.admin { background: #F0FDF4; color: #059669; }
 
       .lg-right h3 {
         font-family: 'Nanum Gothic', sans-serif;
         font-size: 24px;
         font-weight: 800;
-        color: #1e1b4b;
+        color: #1C1917;
         margin: 0 0 6px;
       }
       .lg-right .sub {
@@ -364,16 +364,16 @@ function renderLogin() {
         border-radius: 10px;
         font-size: 14px;
         font-family: 'Nanum Gothic', sans-serif;
-        color: #1e1b4b;
+        color: #1C1917;
         background: #FAFAFA;
         outline: none;
         box-sizing: border-box;
         transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
       }
       .lg-inp:focus {
-        border-color: #6366f1;
+        border-color: #F37321;
         background: #fff;
-        box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        box-shadow: 0 0 0 3px rgba(243,115,33,0.1);
       }
       .lg-hint { font-size: 11px; color: #94A3B8; margin-top: 5px; }
       .lg-err {
@@ -391,7 +391,7 @@ function renderLogin() {
       .lg-btn {
         width: 100%;
         height: 50px;
-        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        background: linear-gradient(135deg, #DC5B0A 0%, #F37321 100%);
         color: #fff;
         border: none;
         border-radius: 10px;
@@ -401,7 +401,7 @@ function renderLogin() {
         cursor: pointer;
         letter-spacing: 0.05em;
         transition: opacity 0.15s, transform 0.1s;
-        box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+        box-shadow: 0 4px 14px rgba(243,115,33,0.35);
       }
       .lg-btn:hover   { opacity: 0.92; }
       .lg-btn:active  { transform: scale(0.99); }
@@ -1047,29 +1047,29 @@ async function renderDashboard() {
   <style>
     .db-page { padding:20px 24px; font-family:'Nanum Gothic',sans-serif; }
     .db-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-    .db-header h1 { font-size:20px; font-weight:800; color:#1e1b4b; }
+    .db-header h1 { font-size:20px; font-weight:800; color:#1C1917; }
     .db-header .ts { font-size:12px; color:#94A3B8; }
-    .ai-box { background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
+    .ai-box { background:linear-gradient(135deg,#1C1917 0%,#7C2D12 100%); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
     .ai-box .ai-hd { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-    .ai-box .ai-hd span { font-size:12px; font-weight:800; color:#a5b4fc; letter-spacing:0.08em; }
-    .ai-box .ai-hd .dot { width:7px;height:7px;border-radius:50%;background:#818cf8;animation:pulse 2s infinite; }
+    .ai-box .ai-hd span { font-size:12px; font-weight:800; color:#FDBA74; letter-spacing:0.08em; }
+    .ai-box .ai-hd .dot { width:7px;height:7px;border-radius:50%;background:#FB923C;animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
     .ai-items { display:flex; flex-direction:column; gap:4px; }
     .ai-item { display:flex; align-items:flex-start; gap:8px; padding:6px 10px; border-radius:8px; border:1px solid transparent; font-size:12px; line-height:1.5; }
     .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
     .kpi-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:12px; padding:12px 16px; position:relative; overflow:hidden; }
     .kpi-card::after { content:''; position:absolute; top:0;right:0; width:60px;height:60px; border-radius:0 12px 0 60px; }
-    .kpi-card.c-purple::after { background:rgba(99,102,241,0.06); }
+    .kpi-card.c-purple::after { background:rgba(243,115,33,0.06); }
     .kpi-card.c-blue::after   { background:rgba(59,130,246,0.06); }
     .kpi-card.c-amber::after  { background:rgba(245,158,11,0.06); }
     .kpi-card.c-red::after    { background:rgba(239,68,68,0.06); }
     .kpi-card.c-green::after  { background:rgba(16,185,129,0.06); }
     .kpi-card .kpi-lbl { font-size:10px; font-weight:700; color:#94A3B8; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:5px; }
-    .kpi-card .kpi-val { font-size:24px; font-weight:800; color:#1e1b4b; line-height:1; font-family:'Nanum Gothic',sans-serif; }
+    .kpi-card .kpi-val { font-size:24px; font-weight:800; color:#1C1917; line-height:1; font-family:'Nanum Gothic',sans-serif; }
     .kpi-card .kpi-unit { font-size:12px; font-weight:400; color:#94A3B8; margin-left:3px; }
     .kpi-card .kpi-sub { font-size:11px; color:#94A3B8; margin-top:3px; }
     .kpi-card .kpi-badge { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:20px; margin-top:4px; }
-    .kpi-card.c-purple .kpi-val { color:#4f46e5; }
+    .kpi-card.c-purple .kpi-val { color:#DC5B0A; }
     .kpi-card.c-amber .kpi-val  { color:#D97706; }
     .kpi-card.c-red .kpi-val    { color:#DC2626; }
     .kpi-card.c-green .kpi-val  { color:#059669; }
@@ -1136,14 +1136,14 @@ async function renderDashboard() {
         <div style="font-size:20px;font-weight:800;color:${incomplete>0?'#D97706':'#059669'}">${incomplete}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
         <div style="font-size:11px;color:#94A3B8;margin-top:4px;">인사 처리 미완</div>
       </div>
-      <div class="alert-card" style="background:#F8FAFF;border-color:#C7D2FE;">
-        <div style="font-size:11px;font-weight:700;color:#4338CA;margin-bottom:8px;">📋 SAP 미전표</div>
-        <div style="font-size:20px;font-weight:800;color:#4f46e5">${sapTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
+      <div class="alert-card" style="background:#FFFBF5;border-color:#FDBA74;">
+        <div style="font-size:11px;font-weight:700;color:#B84500;margin-bottom:8px;">📋 SAP 미전표</div>
+        <div style="font-size:20px;font-weight:800;color:#F37321">${sapTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
         <div style="font-size:11px;color:#94A3B8;margin-top:4px;">SAP 포스팅 필요</div>
       </div>
-      <div class="alert-card" style="background:#F8FAFF;border-color:#C7D2FE;">
-        <div style="font-size:11px;font-weight:700;color:#4338CA;margin-bottom:8px;">📄 사직원 미제출</div>
-        <div style="font-size:20px;font-weight:800;color:#4f46e5">${letterTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
+      <div class="alert-card" style="background:#FFFBF5;border-color:#FDBA74;">
+        <div style="font-size:11px;font-weight:700;color:#B84500;margin-bottom:8px;">📄 사직원 미제출</div>
+        <div style="font-size:20px;font-weight:800;color:#F37321">${letterTodo}<span style="font-size:14px;font-weight:400;margin-left:4px;">건</span></div>
         <div style="font-size:11px;color:#94A3B8;margin-top:4px;">서류 수거 필요</div>
       </div>
     </div>
@@ -1160,9 +1160,9 @@ async function renderDashboard() {
   const byD = groupBy('division');
   const buckets=[{l:'1년↓',c:tenures.filter(t=>t<12).length},{l:'1~3년',c:tenures.filter(t=>t>=12&&t<36).length},{l:'3~5년',c:tenures.filter(t=>t>=36&&t<60).length},{l:'5~10년',c:tenures.filter(t=>t>=60&&t<120).length},{l:'10년↑',c:tenures.filter(t=>t>=120).length}];
 
-  new Chart(document.getElementById('cM'),{type:'line',data:{labels:md.map(m=>m[0]),datasets:[{data:md.map(m=>m[1]),borderColor:'#6366f1',backgroundColor:'rgba(99,102,241,0.08)',tension:0.4,pointRadius:4,pointBackgroundColor:'#6366f1',fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
-  new Chart(document.getElementById('cD'),{type:'bar',data:{labels:byD.map(m=>m[0]),datasets:[{data:byD.map(m=>m[1]),backgroundColor:['#6366f1','#818cf8','#a5b4fc','#c7d2fe','#e0e7ff','#ede9fe'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false}}}}});
-  new Chart(document.getElementById('cTen'),{type:'doughnut',data:{labels:buckets.map(b=>b.l),datasets:[{data:buckets.map(b=>b.c),backgroundColor:['#6366f1','#818cf8','#a5b4fc','#c7d2fe','#e0e7ff'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
+  new Chart(document.getElementById('cM'),{type:'line',data:{labels:md.map(m=>m[0]),datasets:[{data:md.map(m=>m[1]),borderColor:'#F37321',backgroundColor:'rgba(243,115,33,0.08)',tension:0.4,pointRadius:4,pointBackgroundColor:'#F37321',fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
+  new Chart(document.getElementById('cD'),{type:'bar',data:{labels:byD.map(m=>m[0]),datasets:[{data:byD.map(m=>m[1]),backgroundColor:['#F37321','#FB923C','#FDBA74','#D97706','#B45309','#FEF3C7'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false}}}}});
+  new Chart(document.getElementById('cTen'),{type:'doughnut',data:{labels:buckets.map(b=>b.l),datasets:[{data:buckets.map(b=>b.c),backgroundColor:['#F37321','#FB923C','#FDBA74','#FED7AA','#FEF3C7'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
 }
 function statCard(l,v,s,tone='default',hint){
   const t={default:'bg-white border-ink-100',warn:'bg-amber-50 border-amber-100',brand:'bg-brand-soft border-brand/10',success:'bg-green-50 border-green-100'};
@@ -1245,7 +1245,6 @@ function getFilteredResig() {
     if(tm&&(r.team||'')!==tm) return false;
     if(st==='취소됨'){ if(!r.is_cancelled) return false; }
     else if(st){ if(r.is_cancelled) return false; if(r.status_label!==st) return false; }
-    else { if(r.is_cancelled) return false; }
     if(q){ const h=`${r.name||''} ${r.employee_id||''} ${r.division||''} ${r.center||''} ${r.team||''}`.toLowerCase(); if(!h.includes(q)) return false; }
     return true;
   });
@@ -1290,7 +1289,7 @@ function renderResigBody() {
     <tr style="${rowStyle}" ${rowHover}>
       <td style="padding:13px 16px;white-space:nowrap;">
         ${isCancelled
-          ? `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;">취소됨</span>`
+          ? `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;">퇴직취소</span>`
           : `<div style="display:flex;align-items:center;gap:6px;">
               <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;${r.completion_status?'background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0;':'background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;'}">
                 ${r.completion_status?'완료':'미완료'}</span>
@@ -1301,7 +1300,7 @@ function renderResigBody() {
             </div>`}
       </td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.employee_id)}</td>
-      <td style="padding:13px 16px;white-space:nowrap;font-weight:600;color:#111827;font-size:13px;">${esc(r.name)}</td>
+      <td style="padding:13px 16px;white-space:nowrap;font-weight:600;font-size:13px;${isCancelled?'color:#9CA3AF;text-decoration:line-through;':'color:#111827;'}">${esc(r.name)}</td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.division||'-')}</td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.center||'-')}</td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.team||'-')}</td>
@@ -1315,17 +1314,17 @@ function renderResigBody() {
         ${comments.length === 0
           ? `<button onclick="openCommentPanel('${r.id}','${esc(r.name)}')"
                style="font-size:12px;color:#9CA3AF;background:none;border:1px dashed #D1D5DB;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;transition:.12s;"
-               onmouseover="this.style.color='#6366f1';this.style.borderColor='#6366f1';"
+               onmouseover="this.style.color='#F37321';this.style.borderColor='#F37321';"
                onmouseout="this.style.color='#9CA3AF';this.style.borderColor='#D1D5DB';">+ 코멘트</button>`
           : (() => {
               const last = comments[comments.length-1];
               return `<button onclick="openCommentPanel('${r.id}','${esc(r.name)}')"
-                style="text-align:left;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;padding:7px 10px;cursor:pointer;max-width:200px;width:100%;transition:.12s;"
-                onmouseover="this.style.background='#EDE9FE';" onmouseout="this.style.background='#F5F3FF';">
+                style="text-align:left;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;padding:7px 10px;cursor:pointer;max-width:200px;width:100%;transition:.12s;"
+                onmouseover="this.style.background='#CCFBF1';" onmouseout="this.style.background='#F0FDFA';">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                  <span style="width:18px;height:18px;border-radius:50%;background:#6366f1;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(last.a)}</span>
+                  <span style="width:18px;height:18px;border-radius:50%;background:#0D9488;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(last.a)}</span>
                   <span style="font-size:11px;color:#6B7280;flex:1;white-space:nowrap;">${fmtCommentTime(last.t)}</span>
-                  ${comments.length > 1 ? `<span style="font-size:10px;background:#6366f1;color:#fff;border-radius:9px;padding:1px 6px;font-weight:700;">${comments.length}</span>` : ''}
+                  ${comments.length > 1 ? `<span style="font-size:10px;background:#0D9488;color:#fff;border-radius:9px;padding:1px 6px;font-weight:700;">${comments.length}</span>` : ''}
                 </div>
                 <div style="font-size:12px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${esc(last.m)}</div>
               </button>`;
@@ -1334,12 +1333,69 @@ function renderResigBody() {
       </td>
       <td style="padding:13px 16px;text-align:center;white-space:nowrap;">
         <button onclick="openConnModal(adminRows.find(x=>x.id==='${r.id}'))"
-          style="display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
+          style="display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:8px;background:linear-gradient(135deg,#DC5B0A,#F37321);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
           <svg style="width:12px;height:12px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
           연결 희망자
         </button>
       </td>
     </tr>`}).join('');
+}
+
+// @멘션 헬퍼
+let _mentionUsers = null;
+async function getMentionUsers() {
+  if (_mentionUsers) return _mentionUsers;
+  try {
+    const { data } = await sbAdmin.auth.admin.listUsers({ perPage: 200 });
+    _mentionUsers = (data?.users||[]).filter(u=>u.email).map(u=>({ email:u.email, label:u.email.split('@')[0] }));
+  } catch(e) { _mentionUsers = []; }
+  return _mentionUsers||[];
+}
+function renderMentionText(text) {
+  if(!text) return '';
+  return esc(text).replace(/@([A-Za-z0-9._+%\-]+)/g,'<span style="background:#F0FDFA;color:#0D9488;border-radius:3px;padding:0 3px;font-weight:600;">@$1</span>');
+}
+function setupMentionListener(id) {
+  const ta = document.getElementById(`comment-input-${id}`);
+  if(!ta) return;
+  ta.addEventListener('input', async function() {
+    const v = this.value, caret = this.selectionStart;
+    const before = v.slice(0, caret);
+    const m = before.match(/@([A-Za-z0-9._+%\-]*)$/);
+    document.getElementById('mention-dropdown')?.remove();
+    if(!m) return;
+    const q = m[1].toLowerCase();
+    const users = await getMentionUsers();
+    const matches = q ? users.filter(u=>u.label.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)) : users;
+    if(!matches.length) return;
+    const dd = document.createElement('div');
+    dd.id = 'mention-dropdown';
+    const rect = ta.getBoundingClientRect();
+    dd.style.cssText = `position:fixed;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:10000;min-width:220px;max-height:200px;overflow-y:auto;`;
+    dd.style.left = rect.left + 'px';
+    dd.style.top = (rect.top - Math.min(matches.length,5)*40 - 8) + 'px';
+    matches.slice(0,8).forEach(u=>{
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;';
+      item.innerHTML = `<span style="width:26px;height:26px;border-radius:50%;background:#0D9488;color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">${u.label[0].toUpperCase()}</span><span style="color:#374151;font-weight:600;">${u.label}</span><span style="color:#9CA3AF;font-size:11px;margin-left:auto;">${u.email}</span>`;
+      item.onmouseenter = ()=>item.style.background='#F0FDFA';
+      item.onmouseleave = ()=>item.style.background='';
+      item.onmousedown = (e)=>{
+        e.preventDefault();
+        const cur = ta.value, cs = ta.selectionStart;
+        const bef = cur.slice(0, cs), aft = cur.slice(cs);
+        const newBef = bef.replace(/@([A-Za-z0-9._+%\-]*)$/, '@'+u.email+' ');
+        ta.value = newBef + aft;
+        ta.selectionStart = ta.selectionEnd = newBef.length;
+        ta.focus();
+        dd.remove();
+      };
+      dd.appendChild(item);
+    });
+    document.body.appendChild(dd);
+    const hideDd = ()=>{ dd.remove(); document.removeEventListener('click',hideDd); };
+    setTimeout(()=>document.addEventListener('click',hideDd), 0);
+  });
 }
 
 // 코멘트 패널 (Figma 스타일 슬라이드 패널)
@@ -1377,37 +1433,38 @@ function openCommentPanel(id, name) {
           ? `<div style="text-align:center;padding:48px 0;color:#9CA3AF;font-size:13px;line-height:1.7;">아직 코멘트가 없습니다.<br>첫 번째 코멘트를 남겨보세요.</div>`
           : comments.map((c,i)=>`
             <div style="display:flex;gap:10px;align-items:flex-start;">
-              <div style="width:30px;height:30px;border-radius:50%;background:#6366f1;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(c.a)}</div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#0D9488;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(c.a)}</div>
               <div style="flex:1;min-width:0;">
                 <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px;">
                   <span style="font-size:12.5px;font-weight:600;color:#374151;">${esc(c.a||'관리자')}</span>
                   <span style="font-size:11px;color:#9CA3AF;">${fmtCommentTime(c.t)}</span>
                   <button onclick="deleteComment('${id}',${i})" style="margin-left:auto;border:none;background:none;color:#D1D5DB;cursor:pointer;font-size:13px;padding:0 2px;line-height:1;" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#D1D5DB'" title="삭제">✕</button>
                 </div>
-                <div style="font-size:13px;color:#111827;line-height:1.6;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:10px 13px;word-break:break-word;">${esc(c.m)}</div>
+                <div style="font-size:13px;color:#111827;line-height:1.6;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:10px 13px;word-break:break-word;">${renderMentionText(c.m)}</div>
               </div>
             </div>`).join('')}
       </div>
       <div style="padding:14px 20px 18px;border-top:1px solid #E5E7EB;flex-shrink:0;background:#fff;">
         <div style="display:flex;gap:10px;align-items:flex-end;">
-          <div style="width:30px;height:30px;border-radius:50%;background:#6366f1;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(adminUser?.email)}</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#0D9488;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(adminUser?.email)}</div>
           <div style="flex:1;">
-            <textarea id="comment-input-${id}" placeholder="코멘트를 입력하세요..." rows="3"
+            <textarea id="comment-input-${id}" placeholder="코멘트를 입력하세요... (@로 멘션)" rows="3"
               style="width:100%;resize:none;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:13px;outline:none;line-height:1.5;box-sizing:border-box;font-family:inherit;color:#111827;transition:.12s;"
               onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey)){addComment('${id}');}"
-              onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
+              onfocus="this.style.borderColor='#0D9488'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
           </div>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-top:8px;">
           <span style="font-size:11px;color:#9CA3AF;margin-right:auto;line-height:32px;">⌘↵ 또는 버튼으로 전송</span>
           <button onclick="addComment('${id}')"
-            style="height:34px;padding:0 18px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:.12s;"
-            onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">전송</button>
+            style="height:34px;padding:0 18px;background:#0D9488;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:.12s;"
+            onmouseover="this.style.background='#0F766E'" onmouseout="this.style.background='#0D9488'">전송</button>
         </div>
       </div>`;
     // scroll thread to bottom
     const thread = document.getElementById(`comment-thread-${id}`);
     if(thread) thread.scrollTop = thread.scrollHeight;
+    setupMentionListener(id);
   }
 
   renderPanel();
@@ -1509,7 +1566,7 @@ async function renderAlerts() {
       const isActive = b.dataset.tab === tab;
       b.style.background = isActive ? '#fff' : 'transparent';
       b.style.color = isActive ? '#111827' : '#6B7280';
-      b.style.borderBottom = isActive ? '2px solid #4f46e5' : '2px solid transparent';
+      b.style.borderBottom = isActive ? '2px solid #DC5B0A' : '2px solid transparent';
       b.style.fontWeight = isActive ? '700' : '500';
     });
     const body = document.getElementById('alert-tab-body');
@@ -1517,11 +1574,11 @@ async function renderAlerts() {
       body.innerHTML = conns.length === 0
         ? `<div style="padding:48px;text-align:center;color:#9CA3AF;font-size:14px;">신규 연결 희망 요청이 없습니다.</div>`
         : conns.map(c=>`
-          <div style="background:#fff;border:1.5px solid #C7D2FE;border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;">
+          <div style="background:#fff;border:1.5px solid #FDBA74;border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;">
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
                 <span style="font-size:15px;font-weight:700;color:#111827;">${esc(c.expert_name||'이름 미제공')}</span>
-                <span style="font-size:11px;background:#EEF2FF;color:#4f46e5;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
+                <span style="font-size:11px;background:#FFF7ED;color:#DC5B0A;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
               </div>
               <div style="font-size:12px;color:#6B7280;">${esc(c.expert_org||'')}${c.expert_title?' · '+esc(c.expert_title):''}</div>
               ${c.expert_summary?`<div style="margin-top:8px;font-size:12.5px;color:#374151;background:#F8FAFF;border-radius:8px;padding:8px 12px;">${esc(c.expert_summary)}</div>`:''}
@@ -1552,7 +1609,7 @@ async function renderAlerts() {
         <button class="alert-tab-btn" data-tab="conn" onclick="(function(b){renderAlertTab_('conn')})(this)"
           style="padding:10px 20px;font-size:13.5px;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;transition:.12s;">
           🔗 거현량 연결 희망
-          ${conns.length>0?`<span style="margin-left:6px;background:#4f46e5;color:#fff;font-size:10px;font-weight:800;border-radius:9px;padding:1px 6px;">${conns.length}</span>`:''}
+          ${conns.length>0?`<span style="margin-left:6px;background:#DC5B0A;color:#fff;font-size:10px;font-weight:800;border-radius:9px;padding:1px 6px;">${conns.length}</span>`:''}
         </button>
         <button class="alert-tab-btn" data-tab="d5" onclick="renderAlertTab_('d5')"
           style="padding:10px 20px;font-size:13.5px;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;transition:.12s;">
@@ -1614,7 +1671,7 @@ async function renderUpload() {
       <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-6 mb-8">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <span class="text-sm font-semibold text-ink-900">파일 업로드</span>
-          <button onclick="downloadTemplate()" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;font-size:12.5px;cursor:pointer;color:#6366f1;font-weight:600;">
+          <button onclick="downloadTemplate()" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;font-size:12.5px;cursor:pointer;color:#F37321;font-weight:600;">
             📋 업로드 템플릿 다운로드
           </button>
         </div>
@@ -1744,15 +1801,15 @@ async function renderArchive() {
         <!-- 연도 탭 -->
         <div style="display:flex;gap:0;overflow-x:auto;">
           ${years.map(y=>`<button onclick="_archiveYear=${y};_archiveQ=0;renderArchive();"
-            style="padding:9px 18px;border:none;cursor:pointer;font-size:13.5px;border-bottom:2px solid ${_archiveYear===y?'#4f46e5':'transparent'};background:transparent;color:${_archiveYear===y?'#4f46e5':'#6B7280'};font-weight:${_archiveYear===y?'700':'500'};white-space:nowrap;transition:.12s;">
-            ${y}년 <span style="font-size:11px;background:${_archiveYear===y?'#EEF2FF':'#F3F4F6'};color:${_archiveYear===y?'#4f46e5':'#9CA3AF'};border-radius:9px;padding:1px 6px;margin-left:3px;">${yCount(y)}</span>
+            style="padding:9px 18px;border:none;cursor:pointer;font-size:13.5px;border-bottom:2px solid ${_archiveYear===y?'#DC5B0A':'transparent'};background:transparent;color:${_archiveYear===y?'#DC5B0A':'#6B7280'};font-weight:${_archiveYear===y?'700':'500'};white-space:nowrap;transition:.12s;">
+            ${y}년 <span style="font-size:11px;background:${_archiveYear===y?'#FFF7ED':'#F3F4F6'};color:${_archiveYear===y?'#DC5B0A':'#9CA3AF'};border-radius:9px;padding:1px 6px;margin-left:3px;">${yCount(y)}</span>
           </button>`).join('')}
         </div>
         <!-- 분기 서브탭 -->
         ${_archiveYear!==null ? `<div style="display:flex;gap:0;border-top:1px solid #F3F4F6;">
           ${[{q:0,label:'전체'}, ...[...(periodMap.get(_archiveYear)||[])].sort().map(q=>({q,label:'Q'+q}))].map(({q,label})=>`
             <button onclick="_archiveYear=${_archiveYear};_archiveQ=${q};renderArchive();"
-              style="padding:7px 16px;border:none;cursor:pointer;font-size:12.5px;border-bottom:2px solid ${_archiveQ===q?'#4f46e5':'transparent'};background:transparent;color:${_archiveQ===q?'#4f46e5':'#9CA3AF'};font-weight:${_archiveQ===q?'700':'400'};white-space:nowrap;">
+              style="padding:7px 16px;border:none;cursor:pointer;font-size:12.5px;border-bottom:2px solid ${_archiveQ===q?'#DC5B0A':'transparent'};background:transparent;color:${_archiveQ===q?'#DC5B0A':'#9CA3AF'};font-weight:${_archiveQ===q?'700':'400'};white-space:nowrap;">
               ${label}${q>0?` <span style="font-size:11px;color:#9CA3AF;">${qCount(_archiveYear,q)}</span>`:''}
             </button>`).join('')}
         </div>` : ''}
@@ -1919,12 +1976,12 @@ async function openConnModal(row) {
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-              <span style="font-size:15px;font-weight:800;color:#1e1b4b;">${esc(c.expert_name || '이름 미제공')}</span>
-              <span style="font-size:11px;background:#EEF2FF;color:#4f46e5;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
+              <span style="font-size:15px;font-weight:800;color:#1C1917;">${esc(c.expert_name || '이름 미제공')}</span>
+              <span style="font-size:11px;background:#FFF7ED;color:#DC5B0A;padding:2px 8px;border-radius:20px;font-weight:700;">연결 희망</span>
             </div>
             <div style="font-size:12px;color:#6B7280;">${esc(c.expert_org || '')}${c.expert_title ? ' · ' + esc(c.expert_title) : ''}</div>
             ${c.expert_summary ? `<div style="margin-top:8px;font-size:13px;color:#374151;line-height:1.6;padding:10px;background:#F8FAFF;border-radius:8px;">${esc(c.expert_summary)}</div>` : ''}
-            ${c.message ? `<div style="margin-top:6px;font-size:12px;color:#6366f1;font-style:italic;">"${esc(c.message)}"</div>` : ''}
+            ${c.message ? `<div style="margin-top:6px;font-size:12px;color:#F37321;font-style:italic;">"${esc(c.message)}"</div>` : ''}
           </div>
           <div style="text-right;flex-shrink:0;">
             <div style="font-size:11px;color:#94A3B8;">${formatDate(c.created_at)}</div>
