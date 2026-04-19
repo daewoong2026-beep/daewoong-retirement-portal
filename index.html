@@ -1367,7 +1367,7 @@ async function renderDashboard() {
     (emps||[]).forEach(e => { if(!e.hire_date) return; if(e.employment_status==='퇴직') return; const y=new Date(e.hire_date).getFullYear(); activeTotals[y] = (activeTotals[y]||0)+1; });
     const resignedByYear = {};
     activeList.forEach(r=>{ if(!r.hire_date) return; const y=new Date(r.hire_date).getFullYear(); resignedByYear[y] = (resignedByYear[y]||0)+1; });
-    const allYears = [...new Set([...Object.keys(activeTotals), ...Object.keys(resignedByYear)].map(Number))].sort((a,b)=>b-a).slice(0,6);
+    const allYears = [...new Set([...Object.keys(activeTotals), ...Object.keys(resignedByYear)].map(Number))].sort((a,b)=>b-a).slice(0,3);
     cohortRows = allYears.map(y => {
       const act = activeTotals[y]||0, res = resignedByYear[y]||0, total = act + res;
       const pct = total>0 ? Math.round(act/total*100) : 0;
@@ -1390,7 +1390,7 @@ async function renderDashboard() {
       + '</div></td></tr>';
   }).join('');
   const cohortHtml = cohortRows.length > 0
-    ? '<div style="margin-top:12px;"><div class="chart-card"><h3>🎓 입사 동기 잔존율 (최근 6년)</h3>'
+    ? '<div style="margin-top:12px;"><div class="chart-card"><h3>🎓 입사 동기 잔존율 (최근 3년)</h3>'
       + '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
       + '<thead><tr style="background:#FAFAFA;border-bottom:1px solid #E5E7EB;">'
       + '<th style="padding:6px 10px;text-align:left;font-weight:700;color:#6B7280;">입사 연도</th>'
@@ -1477,49 +1477,6 @@ async function renderDashboard() {
     <style>.ai-items.collapsed{display:none !important;}</style>
 
     <!-- KPI 카드 -->
-    <div class="kpi-grid">
-      <div class="kpi-card c-purple">
-        <div class="kpi-lbl">누적 퇴직자</div>
-        <div><span class="kpi-val">${total}</span><span class="kpi-unit">명</span></div>
-        <div class="kpi-sub">${Y}년 ${thisYear}명 접수</div>
-      </div>
-      <div class="kpi-card c-blue">
-        <div class="kpi-lbl">이번 달</div>
-        <div><span class="kpi-val">${thisMonth}</span><span class="kpi-unit">명</span></div>
-        ${momChg!==null ? `<span class="kpi-badge" style="${Number(momChg)>0?'background:#FEE2E2;color:#991B1B':'background:#D1FAE5;color:#065F46'}">${Number(momChg)>0?'▲':'▼'} ${Math.abs(Number(momChg))}% MoM</span>` : '<div class="kpi-sub">전월 비교 불가</div>'}
-      </div>
-      <div class="kpi-card c-green">
-        <div class="kpi-lbl">평균 재직기간</div>
-        <div><span class="kpi-val">${(avgTenure/12).toFixed(1)}</span><span class="kpi-unit">년</span></div>
-        <div class="kpi-sub">${avgTenure}개월 · ${tenures.length}명 기준</div>
-      </div>
-      <div class="kpi-card ${incomplete>0?'c-amber':'c-green'}">
-        <div class="kpi-lbl">처리 현황</div>
-        <div><span class="kpi-val">${total - incomplete}</span><span class="kpi-unit"> / ${total}</span></div>
-        <div class="kpi-sub">완료율 ${total?Math.round((total-incomplete)/total*100):0}%</div>
-      </div>
-      <div class="kpi-card ${probationCount>0?'c-red':'c-green'}">
-        <div class="kpi-lbl">수습퇴직자</div>
-        <div><span class="kpi-val">${probationCount}</span><span class="kpi-unit">명</span></div>
-        <div class="kpi-sub">수습기간 또는 3개월 이내</div>
-      </div>
-      <div class="kpi-card c-blue">
-        <div class="kpi-lbl">📊 주간 트렌드 (WoW)</div>
-        <div><span class="kpi-val" style="color:${wowChg===null?'#6B7280':wowChg>0?'#DC2626':wowChg<0?'#059669':'#6B7280'};">${thisWeek}</span><span class="kpi-unit">명</span></div>
-        <div class="kpi-sub">${wowChg===null ? '지난주 데이터 없음' : (wowChg>0?'▲':wowChg<0?'▼':'•')+' 지난주 대비 '+Math.abs(wowChg)+'% (${lastWeek}명)'.replace('${lastWeek}', lastWeek)}</div>
-      </div>
-      <div class="kpi-card c-green">
-        <div class="kpi-lbl">⏳ 평균 처리 소요일</div>
-        <div><span class="kpi-val">${avgProcessDays}</span><span class="kpi-unit">일</span></div>
-        <div class="kpi-sub">접수일 → 퇴사일 평균 (${processedItems.length}건 기준)</div>
-      </div>
-      ${cancelled>0?`<div class="kpi-card" style="border-color:#E5E7EB;">
-        <div class="kpi-lbl" style="color:#9CA3AF;">취소됨</div>
-        <div><span class="kpi-val" style="color:#6B7280;">${cancelled}</span><span class="kpi-unit">건</span></div>
-        <div class="kpi-sub">퇴직 취소 접수</div>
-      </div>`:''}
-    </div>
-
     <!-- 경고 알림 카드 (클릭 시 퇴직자 관리로 이동 + 해당 인원 강조) -->
     <div class="alert-grid">
       <div class="alert-card ${d5>0?'clickable':''}" ${d5>0?`onclick="jumpToResignations('d5')"`:''} style="${d5>0?'background:#FEF2F2;border-color:#FCA5A5':'background:#F0FDF4;border-color:#86EFAC'};display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -1545,21 +1502,6 @@ async function renderDashboard() {
       <div class="chart-card wide"><h3>📈 월별 퇴직자 추이 (최근 12개월)</h3><div style="position:relative;height:140px;"><canvas id="cM"></canvas></div></div>
       <div class="chart-card"><h3>🏢 본부별 퇴직자 TOP 6</h3><div style="position:relative;height:150px;"><canvas id="cD"></canvas></div></div>
       <div class="chart-card"><h3>🏷️ 퇴직유형 분포</h3><div style="position:relative;height:150px;"><canvas id="cType"></canvas></div></div>
-      <div class="chart-card">
-        <h3>🍂 시즌성 분석 (월별 누적)</h3>
-        <div style="display:flex;align-items:flex-end;gap:3px;height:120px;">
-          ${monthSeason.map((v,i)=>{
-            const pct = (v/maxSeason)*100;
-            const isPeak = (i+1)===seasonPeak && v>0;
-            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
-              <div style="font-size:9px;color:#6B7280;font-weight:700;margin-bottom:2px;">${v||''}</div>
-              <div style="width:100%;height:${Math.max(pct,2)}%;background:${isPeak?'var(--dw-orange)':'var(--dw-orange-l)'};border-radius:3px 3px 0 0;"></div>
-              <div style="font-size:9.5px;color:#9CA3AF;margin-top:3px;">${i+1}월</div>
-            </div>`;
-          }).join('')}
-        </div>
-        ${monthSeason[seasonPeak-1]>0 ? `<div style="margin-top:6px;font-size:10.5px;color:#DC5B0A;font-weight:700;text-align:center;">피크: ${seasonPeak}월 (${monthSeason[seasonPeak-1]}명)</div>` : ''}
-      </div>
     </div>
 
     <!-- 입사 동기 잔존율 (추가 행) -->
