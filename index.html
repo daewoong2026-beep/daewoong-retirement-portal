@@ -1357,45 +1357,45 @@ async function renderDashboard() {
 
   main.innerHTML = `
   <style>
-    .db-page { padding:20px 24px; font-family:'Nanum Gothic',sans-serif; }
-    @media(max-width:640px){ .db-page { padding:14px 12px; } }
-    .db-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-    .db-header h1 { font-size:20px; font-weight:800; color:#1D1D1F; }
-    .db-header .ts { font-size:12px; color:#94A3B8; }
-    .ai-box { background:linear-gradient(135deg,#1D1D1F 0%,#3A3A3C 100%); border-radius:12px; padding:14px 18px; margin-bottom:14px; }
-    .ai-box .ai-hd { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-    .ai-box .ai-hd span { font-size:12px; font-weight:800; color:#86868B; letter-spacing:0.08em; }
-    .ai-box .ai-hd .dot { width:7px;height:7px;border-radius:50%;background:#0066FF;animation:pulse 2s infinite; }
+    .db-page { padding:14px 18px; font-family:'Nanum Gothic',sans-serif; }
+    @media(max-width:640px){ .db-page { padding:10px 10px; } }
+    .db-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .db-header h1 { font-size:17px; font-weight:800; color:#1D1D1F; }
+    .db-header .ts { font-size:11px; color:#94A3B8; }
+    .ai-box { background:linear-gradient(135deg,#1D1D1F 0%,#3A3A3C 100%); border-radius:9px; padding:8px 12px; margin-bottom:10px; }
+    .ai-box .ai-hd { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+    .ai-box .ai-hd span { font-size:10.5px; font-weight:800; color:#86868B; letter-spacing:0.06em; }
+    .ai-box .ai-hd .dot { width:6px;height:6px;border-radius:50%;background:#0066FF;animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
-    .ai-items { display:flex; flex-direction:column; gap:4px; }
-    .ai-item { display:flex; align-items:flex-start; gap:8px; padding:6px 10px; border-radius:8px; border:1px solid transparent; font-size:12px; line-height:1.5; }
-    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; margin-bottom:20px; }
-    .kpi-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:14px; padding:18px 22px; position:relative; overflow:hidden; }
-    .kpi-card::after { content:''; position:absolute; top:0;right:0; width:70px;height:70px; border-radius:0 14px 0 70px; }
+    .ai-items { display:flex; flex-direction:column; gap:3px; }
+    .ai-item { display:flex; align-items:flex-start; gap:6px; padding:4px 8px; border-radius:6px; border:1px solid transparent; font-size:11px; line-height:1.45; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:8px; margin-bottom:10px; }
+    .kpi-card { background:#fff; border:1px solid #E8EAF6; border-radius:9px; padding:9px 12px; position:relative; overflow:hidden; }
+    .kpi-card::after { content:''; position:absolute; top:0;right:0; width:46px;height:46px; border-radius:0 9px 0 46px; }
     .kpi-card.c-purple::after { background:rgba(0,0,0,0.04); }
     .kpi-card.c-blue::after   { background:rgba(59,130,246,0.06); }
     .kpi-card.c-amber::after  { background:rgba(245,158,11,0.06); }
     .kpi-card.c-red::after    { background:rgba(239,68,68,0.06); }
     .kpi-card.c-green::after  { background:rgba(16,185,129,0.06); }
-    .kpi-card .kpi-lbl { font-size:11px; font-weight:700; color:#94A3B8; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
-    .kpi-card .kpi-val { font-size:28px; font-weight:800; color:#1D1D1F; line-height:1.1; font-family:'Nanum Gothic',sans-serif; }
-    .kpi-card .kpi-unit { font-size:13px; font-weight:400; color:#94A3B8; margin-left:4px; }
-    .kpi-card .kpi-sub { font-size:11.5px; color:#94A3B8; margin-top:6px; }
+    .kpi-card .kpi-lbl { font-size:9.5px; font-weight:700; color:#94A3B8; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:3px; }
+    .kpi-card .kpi-val { font-size:18px; font-weight:800; color:#1D1D1F; line-height:1; font-family:'Nanum Gothic',sans-serif; }
+    .kpi-card .kpi-unit { font-size:10.5px; font-weight:400; color:#94A3B8; margin-left:2px; }
+    .kpi-card .kpi-sub { font-size:10px; color:#94A3B8; margin-top:2px; }
     .kpi-card .kpi-badge { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:20px; margin-top:4px; }
     .kpi-card.c-purple .kpi-val { color:#0066FF; }
     .kpi-card.c-amber .kpi-val  { color:#D97706; }
     .kpi-card.c-red .kpi-val    { color:#DC2626; }
     .kpi-card.c-green .kpi-val  { color:#059669; }
-    .alert-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px; }
-    .alert-card { border-radius:12px; padding:14px 18px; border:1.5px solid; transition:.15s; position:relative; }
+    .alert-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px; }
+    .alert-card { border-radius:9px; padding:9px 12px; border:1px solid; transition:.15s; position:relative; }
     .alert-card.clickable { cursor:pointer; }
-    .alert-card.clickable:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08); }
-    .alert-card .nav-arrow { position:absolute; right:12px; top:12px; font-size:11px; color:rgba(0,0,0,.25); font-weight:600; opacity:0; transition:.15s; }
+    .alert-card.clickable:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.06); }
+    .alert-card .nav-arrow { position:absolute; right:10px; top:9px; font-size:10px; color:rgba(0,0,0,.25); font-weight:600; opacity:0; transition:.15s; }
     .alert-card.clickable:hover .nav-arrow { opacity:1; }
-    .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
-    .chart-card { background:#fff; border:1.5px solid #E8EAF6; border-radius:14px; padding:20px 22px; }
+    .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .chart-card { background:#fff; border:1px solid #E8EAF6; border-radius:9px; padding:10px 12px; }
     .chart-card.wide { grid-column:span 2; }
-    .chart-card h3 { font-size:13px; font-weight:800; color:#374151; margin-bottom:14px; }
+    .chart-card h3 { font-size:11.5px; font-weight:800; color:#374151; margin-bottom:8px; }
     @media(max-width:900px){ .kpi-grid{grid-template-columns:repeat(2,1fr);} .alert-grid{grid-template-columns:repeat(2,1fr);} .chart-grid{grid-template-columns:1fr;} .chart-card.wide{grid-column:span 1;} }
   </style>
   <div class="db-page fade-in">
@@ -1449,36 +1449,36 @@ async function renderDashboard() {
     <!-- 경고 알림 카드 (클릭 시 퇴직자 관리로 이동 + 해당 인원 강조) -->
     <div class="alert-grid">
       <div class="alert-card ${d5>0?'clickable':''}" ${d5>0?`onclick="jumpToResignations('d5')"`:''} style="${d5>0?'background:#FEF2F2;border-color:#FCA5A5':'background:#F0FDF4;border-color:#86EFAC'}">
-        <span class="nav-arrow">바로가기 →</span>
-        <div style="font-size:12px;font-weight:700;color:${d5>0?'#991B1B':'#166534'};margin-bottom:10px;">🚨 D-5 경고</div>
-        <div style="font-size:26px;font-weight:800;color:${d5>0?'#DC2626':'#059669'};line-height:1.1;">${d5}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">5일 이내 처리 필요</div>
+        <span class="nav-arrow">→</span>
+        <div style="font-size:10.5px;font-weight:700;color:${d5>0?'#991B1B':'#166534'};margin-bottom:3px;">🚨 D-5 경고</div>
+        <div style="font-size:18px;font-weight:800;color:${d5>0?'#DC2626':'#059669'};line-height:1;">${d5}<span style="font-size:11px;font-weight:400;margin-left:2px;">건</span></div>
+        <div style="font-size:10px;color:#94A3B8;margin-top:2px;">5일 이내 처리</div>
       </div>
       <div class="alert-card ${incomplete>0?'clickable':''}" ${incomplete>0?`onclick="jumpToResignations('incomplete')"`:''} style="${incomplete>0?'background:#FFFBEB;border-color:#FCD34D':'background:#F0FDF4;border-color:#86EFAC'}">
-        <span class="nav-arrow">바로가기 →</span>
-        <div style="font-size:12px;font-weight:700;color:${incomplete>0?'#92400E':'#166534'};margin-bottom:10px;">⚠️ 미완료</div>
-        <div style="font-size:26px;font-weight:800;color:${incomplete>0?'#D97706':'#059669'};line-height:1.1;">${incomplete}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">인사 처리 미완</div>
+        <span class="nav-arrow">→</span>
+        <div style="font-size:10.5px;font-weight:700;color:${incomplete>0?'#92400E':'#166534'};margin-bottom:3px;">⚠️ 미완료</div>
+        <div style="font-size:18px;font-weight:800;color:${incomplete>0?'#D97706':'#059669'};line-height:1;">${incomplete}<span style="font-size:11px;font-weight:400;margin-left:2px;">건</span></div>
+        <div style="font-size:10px;color:#94A3B8;margin-top:2px;">인사 처리 미완</div>
       </div>
       <div class="alert-card ${sapTodo>0?'clickable':''}" ${sapTodo>0?`onclick="jumpToResignations('sap')"`:''} style="background:#FAFAFA;border-color:#86868B;">
-        <span class="nav-arrow">바로가기 →</span>
-        <div style="font-size:12px;font-weight:700;color:#1D1D1F;margin-bottom:10px;">📋 SAP 미전표</div>
-        <div style="font-size:26px;font-weight:800;color:#0066FF;line-height:1.1;">${sapTodo}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">SAP 포스팅 필요</div>
+        <span class="nav-arrow">→</span>
+        <div style="font-size:10.5px;font-weight:700;color:#1D1D1F;margin-bottom:3px;">📋 SAP 미전표</div>
+        <div style="font-size:18px;font-weight:800;color:#0066FF;line-height:1;">${sapTodo}<span style="font-size:11px;font-weight:400;margin-left:2px;">건</span></div>
+        <div style="font-size:10px;color:#94A3B8;margin-top:2px;">SAP 포스팅 필요</div>
       </div>
       <div class="alert-card ${letterTodo>0?'clickable':''}" ${letterTodo>0?`onclick="jumpToResignations('letter')"`:''} style="background:#FAFAFA;border-color:#86868B;">
-        <span class="nav-arrow">바로가기 →</span>
-        <div style="font-size:12px;font-weight:700;color:#1D1D1F;margin-bottom:10px;">📄 사직원 미제출</div>
-        <div style="font-size:26px;font-weight:800;color:#0066FF;line-height:1.1;">${letterTodo}<span style="font-size:15px;font-weight:400;margin-left:4px;">건</span></div>
-        <div style="font-size:11.5px;color:#94A3B8;margin-top:6px;">서류 수거 필요</div>
+        <span class="nav-arrow">→</span>
+        <div style="font-size:10.5px;font-weight:700;color:#1D1D1F;margin-bottom:3px;">📄 사직원 미제출</div>
+        <div style="font-size:18px;font-weight:800;color:#0066FF;line-height:1;">${letterTodo}<span style="font-size:11px;font-weight:400;margin-left:2px;">건</span></div>
+        <div style="font-size:10px;color:#94A3B8;margin-top:2px;">서류 수거 필요</div>
       </div>
     </div>
 
     <!-- 차트 -->
     <div class="chart-grid">
-      <div class="chart-card wide"><h3>📈 월별 퇴직자 추이 (최근 12개월)</h3><div style="position:relative;height:160px;"><canvas id="cM"></canvas></div></div>
-      <div class="chart-card"><h3>🏢 본부별 퇴직자 TOP 6</h3><div style="position:relative;height:180px;"><canvas id="cD"></canvas></div></div>
-      <div class="chart-card"><h3>🏷️ 퇴직유형 분포</h3><div style="position:relative;height:180px;"><canvas id="cType"></canvas></div></div>
+      <div class="chart-card wide"><h3>📈 월별 퇴직자 추이 (최근 12개월)</h3><div style="position:relative;height:120px;"><canvas id="cM"></canvas></div></div>
+      <div class="chart-card"><h3>🏢 본부별 퇴직자 TOP 6</h3><div style="position:relative;height:140px;"><canvas id="cD"></canvas></div></div>
+      <div class="chart-card"><h3>🏷️ 퇴직유형 분포</h3><div style="position:relative;height:140px;"><canvas id="cType"></canvas></div></div>
     </div>
   </div>`;
 
