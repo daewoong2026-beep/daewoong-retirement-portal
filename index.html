@@ -1076,8 +1076,11 @@ async function renderDashboard() {
     sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}).limit(2000),
     sbAdmin.from('resignation_requests').select('id,resignation_type,is_cancelled'),
   ]);
+  console.log('[renderDashboard] view rows:', listRes.data?.length, 'type rows:', typeRes.data?.length, 'type err:', typeRes.error);
+  console.log('[renderDashboard] type samples:', typeRes.data?.filter(r=>r.resignation_type).slice(0,5));
   const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
   const list = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
+  console.log('[renderDashboard] merged list with types:', list.filter(r=>r.resignation_type).length);
   const now = new Date(); const Y = now.getFullYear(); const M = now.getMonth();
   const cancelled = list.filter(r => r.is_cancelled).length;
   const activeList = list.filter(r => !r.is_cancelled);
@@ -1252,8 +1255,12 @@ async function renderResignations() {
     sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}),
     sbAdmin.from('resignation_requests').select('id,resignation_type,is_cancelled,cancelled_at,cancelled_by,cancel_reason'),
   ]);
+  console.log('[renderResignations] view rows:', listRes.data?.length, 'err:', listRes.error);
+  console.log('[renderResignations] type rows:', typeRes.data?.length, 'err:', typeRes.error, 'sample:', typeRes.data?.slice(0,3));
+  if(typeRes.error) showToast('퇴직유형 조회 실패: ' + typeRes.error.message, 'error');
   const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
   adminRows = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
+  console.log('[renderResignations] merged adminRows with types:', adminRows.filter(r=>r.resignation_type).length);
   const years    = [...new Set(adminRows.map(r=>r.resignation_date?new Date(r.resignation_date).getFullYear():null).filter(Boolean))].sort().reverse();
   const divisions= [...new Set(adminRows.map(r=>r.division).filter(Boolean))].sort();
   const centers  = [...new Set(adminRows.map(r=>r.center).filter(Boolean))].sort();
