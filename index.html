@@ -37,51 +37,56 @@
 
   /* ── 테마 시스템 (data-theme on <html>) ── */
   :root {
-    --theme-sidebar-bg: #1D1D1F;
-    --theme-sidebar-grad: linear-gradient(145deg, #000000 0%, #1D1D1F 55%, #3A3A3C 100%);
-    --theme-ai-grad: linear-gradient(135deg, #1D1D1F 0%, #3A3A3C 100%);
-    --theme-primary: #0066FF;
-    --theme-primary-hover: #0052CC;
-    --theme-primary-soft: #F0F7FF;
-    --theme-accent-text: #FFFFFF;
+    --theme-sidebar-grad-v: linear-gradient(180deg, #1D1D1F 0%, #0A0A0A 100%);
+    --theme-sidebar-grad:   linear-gradient(145deg, #000000 0%, #1D1D1F 55%, #3A3A3C 100%);
+    --theme-ai-grad:        linear-gradient(135deg, #1D1D1F 0%, #3A3A3C 100%);
+    --theme-primary:        #0066FF;
+    --theme-primary-hover:  #0052CC;
+    --theme-primary-soft:   #F0F7FF;
+    --theme-bg-tint:        #FAFAFA;
   }
   html[data-theme="sunset"] {
-    --theme-sidebar-bg: #1C1917;
-    --theme-sidebar-grad: linear-gradient(145deg, #1C1917 0%, #7C2D12 55%, #C2410C 100%);
-    --theme-ai-grad: linear-gradient(135deg, #1C1917 0%, #7C2D12 100%);
-    --theme-primary: #F37321;
-    --theme-primary-hover: #DC5B0A;
-    --theme-primary-soft: #FFF7ED;
+    --theme-sidebar-grad-v: linear-gradient(180deg, #3D1E0C 0%, #1C0E05 100%);
+    --theme-sidebar-grad:   linear-gradient(145deg, #1C1917 0%, #7C2D12 55%, #C2410C 100%);
+    --theme-ai-grad:        linear-gradient(135deg, #3D1E0C 0%, #9A3412 100%);
+    --theme-primary:        #F37321;
+    --theme-primary-hover:  #DC5B0A;
+    --theme-primary-soft:   #FFF7ED;
+    --theme-bg-tint:        #FFFAF5;
   }
   html[data-theme="ocean"] {
-    --theme-sidebar-bg: #0A1A33;
-    --theme-sidebar-grad: linear-gradient(145deg, #050D1F 0%, #123466 55%, #1E4A8F 100%);
-    --theme-ai-grad: linear-gradient(135deg, #0A1A33 0%, #1E4A8F 100%);
-    --theme-primary: #0EA5E9;
-    --theme-primary-hover: #0284C7;
-    --theme-primary-soft: #F0F9FF;
+    --theme-sidebar-grad-v: linear-gradient(180deg, #0A1A33 0%, #020817 100%);
+    --theme-sidebar-grad:   linear-gradient(145deg, #050D1F 0%, #123466 55%, #1E4A8F 100%);
+    --theme-ai-grad:        linear-gradient(135deg, #0A1A33 0%, #1E4A8F 100%);
+    --theme-primary:        #0EA5E9;
+    --theme-primary-hover:  #0284C7;
+    --theme-primary-soft:   #F0F9FF;
+    --theme-bg-tint:        #F5FAFF;
   }
   html[data-theme="forest"] {
-    --theme-sidebar-bg: #0F2920;
-    --theme-sidebar-grad: linear-gradient(145deg, #0A1F18 0%, #134632 55%, #1F6B4C 100%);
-    --theme-ai-grad: linear-gradient(135deg, #0F2920 0%, #1F6B4C 100%);
-    --theme-primary: #10B981;
-    --theme-primary-hover: #059669;
-    --theme-primary-soft: #F0FDF4;
+    --theme-sidebar-grad-v: linear-gradient(180deg, #0F2920 0%, #051310 100%);
+    --theme-sidebar-grad:   linear-gradient(145deg, #0A1F18 0%, #134632 55%, #1F6B4C 100%);
+    --theme-ai-grad:        linear-gradient(135deg, #0F2920 0%, #1F6B4C 100%);
+    --theme-primary:        #10B981;
+    --theme-primary-hover:  #059669;
+    --theme-primary-soft:   #F0FDF4;
+    --theme-bg-tint:        #F5FCF8;
   }
   html[data-theme="royal"] {
-    --theme-sidebar-bg: #1E1B3D;
-    --theme-sidebar-grad: linear-gradient(145deg, #13102A 0%, #312E81 55%, #4F46E5 100%);
-    --theme-ai-grad: linear-gradient(135deg, #1E1B3D 0%, #4F46E5 100%);
-    --theme-primary: #8B5CF6;
-    --theme-primary-hover: #7C3AED;
-    --theme-primary-soft: #F5F3FF;
+    --theme-sidebar-grad-v: linear-gradient(180deg, #1E1B3D 0%, #0B0A1F 100%);
+    --theme-sidebar-grad:   linear-gradient(145deg, #13102A 0%, #312E81 55%, #4F46E5 100%);
+    --theme-ai-grad:        linear-gradient(135deg, #1E1B3D 0%, #4F46E5 100%);
+    --theme-primary:        #8B5CF6;
+    --theme-primary-hover:  #7C3AED;
+    --theme-primary-soft:   #F5F3FF;
+    --theme-bg-tint:        #FAF8FF;
   }
 
   /* 테마 적용 대상 — 전역 */
-  .admin-sidebar { background: var(--theme-sidebar-bg) !important; }
+  .admin-sidebar { background: var(--theme-sidebar-grad-v) !important; }
   .lg-left       { background: var(--theme-sidebar-grad) !important; }
   .ai-box        { background: var(--theme-ai-grad) !important; }
+  body, #adminMain { background: var(--theme-bg-tint) !important; }
 
   /* 포커스 컬러 */
   input:focus, select:focus, textarea:focus { border-color: var(--theme-primary) !important; }
@@ -114,18 +119,38 @@
     60%  { opacity:1; transform: scale(1.05) translateY(0); }
     100% { opacity:1; transform: scale(1) translateY(0); }
   }
+  @keyframes welcomeSlide {
+    0%   { opacity:0; transform: translateX(-50%) translateY(-20px); }
+    100% { opacity:1; transform: translateX(-50%) translateY(0); }
+  }
   @keyframes welcomeFade { from { opacity:1; } to { opacity:0; } }
   @keyframes checkDraw {
     0% { stroke-dashoffset: 50; }
     100% { stroke-dashoffset: 0; }
   }
 
-  /* 퇴직자 관리 테이블 반응형 컬럼 숨김 */
-  @media (max-width: 1500px) {
+  /* 퇴직자 관리 테이블 반응형 컬럼 숨김 + 크기 축소 */
+  @media (max-width: 1600px) {
     .resig-col-hide-lg { display: none; }
   }
-  @media (max-width: 1280px) {
+  @media (max-width: 1400px) {
     .resig-col-hide-md { display: none; }
+    .resig-table td, .resig-table th { padding:9px 8px !important; font-size:12px !important; }
+  }
+  @media (max-width: 1200px) {
+    .resig-col-hide-sm { display: none; }
+    .resig-table td, .resig-table th { padding:8px 6px !important; font-size:11.5px !important; }
+  }
+  @media (max-width: 1024px) {
+    .resig-table td, .resig-table th { padding:7px 5px !important; font-size:11px !important; }
+    .resp-page { padding:16px 14px !important; }
+  }
+
+  /* 전역 반응형 스케일 — 좁은 화면에서 비율적으로 축소 */
+  @media (max-width: 1400px) {
+    .db-page { padding:16px 18px !important; }
+    .kpi-card { padding:10px 12px !important; }
+    .kpi-card .kpi-val { font-size:20px !important; }
   }
 
   /* ── 반응형 레이아웃 ── */
@@ -260,23 +285,24 @@ function showWelcomePopup(name, role) {
   const roleText = role==='hr_admin' ? 'HR 관리자' : role==='hr_viewer' ? 'HR 뷰어' : role==='company_admin' ? '회사 관리자' : role==='uploader_admin' ? '업로더' : '';
   const el = document.createElement('div');
   el.id = 'welcomePopup';
-  el.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:28px 36px;box-shadow:0 24px 64px rgba(0,0,0,.18);z-index:10000;text-align:center;animation:welcomePop .4s cubic-bezier(.34,1.56,.64,1);min-width:280px;`;
+  el.style.cssText = `position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#fff;border-radius:14px;padding:16px 26px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:10000;text-align:left;animation:welcomeSlide .35s cubic-bezier(.34,1.56,.64,1);min-width:300px;max-width:calc(100vw - 32px);display:flex;align-items:center;gap:14px;`;
   el.innerHTML = `
-    <div style="width:64px;height:64px;border-radius:50%;background:color-mix(in srgb, var(--theme-primary) 15%, transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-      <svg width="36" height="36" viewBox="0 0 52 52" fill="none">
+    <div style="width:44px;height:44px;border-radius:50%;background:color-mix(in srgb, var(--theme-primary) 15%, transparent);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="26" height="26" viewBox="0 0 52 52" fill="none">
         <circle cx="26" cy="26" r="24" stroke="var(--theme-primary)" stroke-width="2.5" fill="color-mix(in srgb, var(--theme-primary) 10%, transparent)"/>
-        <path d="M14 27 L23 35 L38 18" stroke="var(--theme-primary)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="50" style="animation:checkDraw .5s ease-out .15s forwards;stroke-dashoffset:50;"/>
+        <path d="M14 27 L23 35 L38 18" stroke="var(--theme-primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="50" style="animation:checkDraw .5s ease-out .15s forwards;stroke-dashoffset:50;"/>
       </svg>
     </div>
-    <div style="font-size:18px;font-weight:700;color:#1D1D1F;margin-bottom:4px;">어서오세요!</div>
-    <div style="font-size:15px;color:#6E6E73;"><strong style="color:#1D1D1F;">${esc(displayName)}</strong>님 👋</div>
-    ${roleText ? `<div style="margin-top:10px;display:inline-block;padding:3px 10px;background:color-mix(in srgb, var(--theme-primary) 12%, transparent);color:var(--theme-primary);border-radius:999px;font-size:11px;font-weight:700;">${esc(roleText)}</div>` : ''}`;
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:700;color:#1D1D1F;line-height:1.3;">어서오세요! <strong>${esc(displayName)}</strong>님 👋</div>
+      ${roleText ? `<div style="margin-top:3px;display:inline-block;padding:2px 8px;background:color-mix(in srgb, var(--theme-primary) 12%, transparent);color:var(--theme-primary);border-radius:999px;font-size:10.5px;font-weight:700;">${esc(roleText)}</div>` : ''}
+    </div>`;
   document.body.appendChild(el);
   setTimeout(()=>{
-    el.style.transition = 'opacity .4s, transform .4s';
+    el.style.transition = 'opacity .3s, transform .3s';
     el.style.opacity = '0';
-    el.style.transform = 'translate(-50%, -50%) scale(0.9)';
-    setTimeout(()=>el.remove(), 400);
+    el.style.transform = 'translateX(-50%) translateY(-10px)';
+    setTimeout(()=>el.remove(), 300);
   }, 2200);
 }
 
@@ -1471,16 +1497,16 @@ async function renderResignations() {
         </div>
       </div>
       <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;">
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <table class="resig-table" style="width:100%;border-collapse:collapse;font-size:12.5px;">
             <thead>
               <tr style="background:#F9FAFB;border-bottom:1.5px solid #E5E7EB;">
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">상태</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">사번</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">이름</th>
-                <th class="resig-col-hide-md" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">본부</th>
-                <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">센터</th>
-                <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">팀</th>
+                <th style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">상태</th>
+                <th style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">사번</th>
+                <th style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">이름</th>
+                <th class="resig-col-hide-md" style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">본부</th>
+                <th style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">센터</th>
+                <th class="resig-col-hide-sm" style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">팀</th>
                 <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">퇴사일</th>
                 <th class="resig-col-hide-lg" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">근무마감</th>
                 <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:110px;">퇴직유형</th>
@@ -1488,8 +1514,8 @@ async function renderResignations() {
                 <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">사직원</th>
                 <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">SAP</th>
                 <th class="resig-col-hide-lg" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">등록일시</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:140px;">코멘트</th>
-                <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">연결 희망자</th>
+                <th style="padding:11px 10px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:110px;">코멘트</th>
+                <th style="padding:11px 10px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">연결</th>
               </tr>
             </thead>
             <tbody id="resigBody"></tbody>
@@ -1576,7 +1602,7 @@ function renderResigBody() {
       <td style="padding:11px 12px;white-space:nowrap;font-weight:600;font-size:13px;${isCancelled?'color:#9CA3AF;text-decoration:line-through;':'color:#111827;'}">${esc(r.name)}</td>
       <td class="resig-col-hide-md" style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.division||'-')}</td>
       <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.center||'-')}</td>
-      <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.team||'-')}</td>
+      <td class="resig-col-hide-sm" style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.team||'-')}</td>
       <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${formatDate(r.resignation_date)}</td>
       <td class="resig-col-hide-lg" style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${formatDate(r.last_working_date)}</td>
       <td style="padding:9px 10px;">
@@ -1611,11 +1637,11 @@ function renderResigBody() {
             })()
         }
       </td>
-      <td style="padding:13px 16px;text-align:center;white-space:nowrap;">
-        <button onclick="openConnModal(adminRows.find(x=>x.id==='${r.id}'))"
-          style="display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:8px;background:linear-gradient(135deg,#0052CC,#0066FF);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
-          <svg style="width:12px;height:12px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-          연결 희망자
+      <td style="padding:9px 8px;text-align:center;white-space:nowrap;">
+        <button onclick="openConnModal(adminRows.find(x=>x.id==='${r.id}'))" title="연결 희망자"
+          style="display:inline-flex;align-items:center;justify-content:center;gap:4px;height:28px;padding:0 10px;border-radius:7px;background:linear-gradient(135deg,var(--theme-primary-hover),var(--theme-primary));color:#fff;font-size:11.5px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;">
+          <svg style="width:11px;height:11px;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+          <span>희망자</span>
         </button>
       </td>
     </tr>`}).join('');
