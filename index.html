@@ -154,6 +154,13 @@ let adminView   = 'dashboard';
 let adminRows   = [];     // 퇴직자 목록 캐시
 let _archiveYear = null, _archiveQ = 0, _archiveData = [];
 const _navStack = []; let _navPos = -1; let _navLock = false;
+let _notifications = []; let _notifUnread = 0;
+
+const RESIG_TYPES = ['자발-이직','자발-개인사정','수습퇴직','권고사직','해고','정년퇴직','계약만료','기타'];
+const RESIG_TYPE_COLORS = {
+  '자발-이직':'#F37321','자발-개인사정':'#FB923C','수습퇴직':'#DC2626','권고사직':'#8B5CF6',
+  '해고':'#991B1B','정년퇴직':'#0D9488','계약만료':'#F59E0B','기타':'#9CA3AF',
+};
 
 // ============================================================
 // 초기화 — 기존 세션 복원
@@ -929,6 +936,10 @@ function renderAdminApp() {
       </button>
       <div style="width:1px;height:20px;background:#E5E7EB;margin:0 4px;flex-shrink:0;"></div>
       <span class="topbar-label">${_MENU_LABELS[adminView]||''}</span>
+      <button id="bellBtn" onclick="toggleNotifDropdown()" title="알림" style="position:relative;width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;margin-left:auto;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span id="notifBadge" style="display:none;position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#DC2626;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;line-height:1;">0</span>
+      </button>
     </div>
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
     <div style="display:flex;padding-top:44px;">
@@ -951,6 +962,7 @@ function renderAdminApp() {
   `;
   renderAdminView();
   loadConnBadge();
+  loadNotifications();
 }
 
 async function loadConnBadge() {
@@ -1060,8 +1072,12 @@ function generateInsights(list, Y, M) {
 async function renderDashboard() {
   const main = document.getElementById('adminMain');
   main.innerHTML = `<div class="p-8 flex items-center gap-3 text-ink-500"><div class="w-5 h-5 rounded-full border-2 border-ink-200 border-t-brand animate-spin"></div>분석 중...</div>`;
-  const { data } = await sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}).limit(2000);
-  const list = data || [];
+  const [listRes, typeRes] = await Promise.all([
+    sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}).limit(2000),
+    sbAdmin.from('resignation_requests').select('id,resignation_type,is_cancelled'),
+  ]);
+  const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
+  const list = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
   const now = new Date(); const Y = now.getFullYear(); const M = now.getMonth();
   const cancelled = list.filter(r => r.is_cancelled).length;
   const activeList = list.filter(r => !r.is_cancelled);
@@ -1075,6 +1091,12 @@ async function renderDashboard() {
   const letterTodo = activeList.filter(r => !r.resignation_letter_submitted).length;
   const tenures = activeList.map(r => r.tenure_months).filter(v => v != null);
   const avgTenure = tenures.length ? Math.round(tenures.reduce((a,b)=>a+b,0)/tenures.length) : 0;
+  const probationCount = activeList.filter(r => r.resignation_type === '수습퇴직' || (r.tenure_months != null && r.tenure_months < 3)).length;
+  const typeCountMap = {};
+  RESIG_TYPES.forEach(t => typeCountMap[t] = 0);
+  typeCountMap['미분류'] = 0;
+  activeList.forEach(r => { const k = r.resignation_type || '미분류'; typeCountMap[k] = (typeCountMap[k]||0) + 1; });
+  const typeEntries = Object.entries(typeCountMap).filter(([,c]) => c > 0);
 
   const monthlyMap = new Map();
   for (let i=11;i>=0;i--) { const d=new Date(Y,M-i,1); monthlyMap.set(`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`,0); }
@@ -1160,6 +1182,11 @@ async function renderDashboard() {
         <div><span class="kpi-val">${total - incomplete}</span><span class="kpi-unit"> / ${total}</span></div>
         <div class="kpi-sub">완료율 ${total?Math.round((total-incomplete)/total*100):0}%</div>
       </div>
+      <div class="kpi-card ${probationCount>0?'c-red':'c-green'}">
+        <div class="kpi-lbl">수습퇴직자</div>
+        <div><span class="kpi-val">${probationCount}</span><span class="kpi-unit">명</span></div>
+        <div class="kpi-sub">수습기간 또는 3개월 이내</div>
+      </div>
       ${cancelled>0?`<div class="kpi-card" style="border-color:#E5E7EB;">
         <div class="kpi-lbl" style="color:#9CA3AF;">취소됨</div>
         <div><span class="kpi-val" style="color:#6B7280;">${cancelled}</span><span class="kpi-unit">건</span></div>
@@ -1195,17 +1222,18 @@ async function renderDashboard() {
     <div class="chart-grid">
       <div class="chart-card wide"><h3>📈 월별 퇴직자 추이 (최근 12개월)</h3><div style="position:relative;height:160px;"><canvas id="cM"></canvas></div></div>
       <div class="chart-card"><h3>🏢 본부별 퇴직자 TOP 6</h3><div style="position:relative;height:180px;"><canvas id="cD"></canvas></div></div>
-      <div class="chart-card"><h3>⏱️ 재직기간 분포</h3><div style="position:relative;height:180px;"><canvas id="cTen"></canvas></div></div>
+      <div class="chart-card"><h3>🏷️ 퇴직유형 분포</h3><div style="position:relative;height:180px;"><canvas id="cType"></canvas></div></div>
     </div>
   </div>`;
 
   const md = Array.from(monthlyMap.entries());
   const byD = groupBy('division');
-  const buckets=[{l:'1년↓',c:tenures.filter(t=>t<12).length},{l:'1~3년',c:tenures.filter(t=>t>=12&&t<36).length},{l:'3~5년',c:tenures.filter(t=>t>=36&&t<60).length},{l:'5~10년',c:tenures.filter(t=>t>=60&&t<120).length},{l:'10년↑',c:tenures.filter(t=>t>=120).length}];
 
   new Chart(document.getElementById('cM'),{type:'line',data:{labels:md.map(m=>m[0]),datasets:[{data:md.map(m=>m[1]),borderColor:'#F37321',backgroundColor:'rgba(243,115,33,0.08)',tension:0.4,pointRadius:4,pointBackgroundColor:'#F37321',fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},x:{grid:{display:false}}}}});
   new Chart(document.getElementById('cD'),{type:'bar',data:{labels:byD.map(m=>m[0]),datasets:[{data:byD.map(m=>m[1]),backgroundColor:['#F37321','#0D9488','#8B5CF6','#F59E0B','#10B981','#EC4899'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(0,0,0,0.04)'}},y:{grid:{display:false}}}}});
-  new Chart(document.getElementById('cTen'),{type:'doughnut',data:{labels:buckets.map(b=>b.l),datasets:[{data:buckets.map(b=>b.c),backgroundColor:['#F37321','#F59E0B','#10B981','#0D9488','#8B5CF6'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});
+  if(typeEntries.length > 0){
+    new Chart(document.getElementById('cType'),{type:'doughnut',data:{labels:typeEntries.map(e=>e[0]),datasets:[{data:typeEntries.map(e=>e[1]),backgroundColor:typeEntries.map(e=>RESIG_TYPE_COLORS[e[0]]||'#9CA3AF'),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:10}}}}});
+  }
 }
 function statCard(l,v,s,tone='default',hint){
   const t={default:'bg-white border-ink-100',warn:'bg-amber-50 border-amber-100',brand:'bg-brand-soft border-brand/10',success:'bg-green-50 border-green-100'};
@@ -1220,8 +1248,12 @@ function mkBarH(id,l,d,c){ new Chart(document.getElementById(id),{type:'bar',dat
 async function renderResignations() {
   const main = document.getElementById('adminMain');
   main.innerHTML = `<div class="p-8 text-ink-500">로딩 중...</div>`;
-  const { data } = await sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false});
-  adminRows = data || [];
+  const [listRes, typeRes] = await Promise.all([
+    sbAdmin.from('v_resignation_list').select('*').order('resignation_date',{ascending:false}),
+    sbAdmin.from('resignation_requests').select('id,resignation_type,is_cancelled,cancelled_at,cancelled_by,cancel_reason'),
+  ]);
+  const extraMap = Object.fromEntries((typeRes.data||[]).map(r=>[r.id, r]));
+  adminRows = (listRes.data || []).map(r => ({ ...r, ...(extraMap[r.id]||{}) }));
   const years    = [...new Set(adminRows.map(r=>r.resignation_date?new Date(r.resignation_date).getFullYear():null).filter(Boolean))].sort().reverse();
   const divisions= [...new Set(adminRows.map(r=>r.division).filter(Boolean))].sort();
   const centers  = [...new Set(adminRows.map(r=>r.center).filter(Boolean))].sort();
@@ -1256,6 +1288,7 @@ async function renderResignations() {
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">팀</th>
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">퇴사일</th>
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">근무마감</th>
+                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:130px;">퇴직유형</th>
                 <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">계정삭제</th>
                 <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">사직원</th>
                 <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">SAP</th>
@@ -1320,7 +1353,7 @@ function renderResigBody() {
   const filtered = getFilteredResig();
   document.getElementById('cntBox').innerHTML = `총 <strong style="color:#111827;">${filtered.length}</strong>건`;
   const body = document.getElementById('resigBody');
-  if(!filtered.length){ body.innerHTML=`<tr><td colspan="14" style="text-align:center;padding:48px;color:#9CA3AF;font-size:14px;">조건에 맞는 데이터가 없습니다.</td></tr>`; return; }
+  if(!filtered.length){ body.innerHTML=`<tr><td colspan="15" style="text-align:center;padding:48px;color:#9CA3AF;font-size:14px;">조건에 맞는 데이터가 없습니다.</td></tr>`; return; }
   body.innerHTML = filtered.map(r=>{
     const comments = parseComments(r.note);
     const isCancelled = !!r.is_cancelled;
@@ -1349,6 +1382,13 @@ function renderResigBody() {
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.team||'-')}</td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${formatDate(r.resignation_date)}</td>
       <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${formatDate(r.last_working_date)}</td>
+      <td style="padding:10px 12px;">
+        <select onchange="updateResigType('${r.id}', this.value)" ${isCancelled?'disabled':''}
+          style="height:28px;padding:0 6px;border:1px solid ${r.resignation_type?'transparent':'#E5E7EB'};border-radius:6px;font-size:12px;background:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#F3F4F6')+'1A':'#fff'};color:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#374151'):'#9CA3AF'};font-weight:${r.resignation_type?'600':'400'};cursor:pointer;outline:none;max-width:120px;">
+          <option value="">미분류</option>
+          ${RESIG_TYPES.map(t=>`<option value="${t}" ${r.resignation_type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </td>
       <td style="padding:13px 16px;text-align:center;">${chkBtn(r.id,'account_deleted',r.account_deleted)}</td>
       <td style="padding:13px 16px;text-align:center;">${chkBtn(r.id,'resignation_letter_submitted',r.resignation_letter_submitted)}</td>
       <td style="padding:13px 16px;text-align:center;">${chkBtn(r.id,'sap_posted',r.sap_posted)}</td>
@@ -1441,6 +1481,111 @@ function setupMentionListener(id) {
   });
 }
 
+// 알림 시스템
+function extractMentions(text) {
+  if(!text) return [];
+  const m = text.match(/@([A-Za-z0-9._+%\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,})/g) || [];
+  return [...new Set(m.map(x=>x.slice(1)))];
+}
+async function createMentionNotifications(resigId, row, msg) {
+  const mentions = extractMentions(msg);
+  if(!mentions.length) return;
+  const users = await getMentionUsers();
+  const validEmails = new Set(users.map(u=>u.email));
+  const rows = mentions
+    .filter(e => validEmails.has(e) && e !== adminUser?.email)
+    .map(e => ({
+      recipient_email: e, sender_email: adminUser?.email || null,
+      resignation_id: resigId, employee_name: row?.name || '',
+      comment_text: msg.slice(0, 300)
+    }));
+  if(!rows.length) return;
+  await sbAdmin.from('admin_notifications').insert(rows);
+}
+async function loadNotifications() {
+  if(!adminUser?.email) return;
+  const { data } = await sbAdmin.from('admin_notifications')
+    .select('id,sender_email,resignation_id,employee_name,comment_text,is_read,created_at')
+    .eq('recipient_email', adminUser.email)
+    .order('created_at',{ascending:false}).limit(30);
+  _notifications = data || [];
+  _notifUnread = _notifications.filter(n => !n.is_read).length;
+  updateNotifBadge();
+}
+function updateNotifBadge() {
+  const b = document.getElementById('notifBadge');
+  if(!b) return;
+  if(_notifUnread > 0){ b.textContent = _notifUnread>99?'99+':_notifUnread; b.style.display='inline-flex'; }
+  else b.style.display='none';
+}
+async function markNotifRead(id) {
+  await sbAdmin.from('admin_notifications').update({is_read:true}).eq('id',id);
+  const n = _notifications.find(x=>x.id===id);
+  if(n && !n.is_read){ n.is_read=true; _notifUnread=Math.max(0,_notifUnread-1); updateNotifBadge(); }
+}
+async function markAllNotifRead() {
+  await sbAdmin.from('admin_notifications').update({is_read:true})
+    .eq('recipient_email', adminUser.email).eq('is_read', false);
+  _notifications.forEach(n=>n.is_read=true);
+  _notifUnread = 0; updateNotifBadge(); renderNotifDropdown();
+}
+function toggleNotifDropdown() {
+  const ex = document.getElementById('notifDropdown');
+  if(ex){ ex.remove(); return; }
+  renderNotifDropdown();
+}
+function renderNotifDropdown() {
+  document.getElementById('notifDropdown')?.remove();
+  const btn = document.getElementById('bellBtn');
+  if(!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const dd = document.createElement('div');
+  dd.id = 'notifDropdown';
+  dd.style.cssText = `position:fixed;top:${rect.bottom+4}px;right:${Math.max(10, window.innerWidth - rect.right)}px;width:360px;max-width:calc(100vw - 20px);max-height:480px;background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);z-index:300;overflow:hidden;display:flex;flex-direction:column;`;
+  dd.innerHTML = `
+    <div style="padding:14px 16px;border-bottom:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:14px;font-weight:700;color:#1C1917;">알림 ${_notifUnread>0?`<span style="color:#DC2626;font-size:12px;margin-left:6px;">●  ${_notifUnread}개 안읽음</span>`:''}</div>
+      ${_notifications.length>0?`<button onclick="markAllNotifRead()" style="font-size:11px;color:#6B7280;background:none;border:none;cursor:pointer;">모두 읽음</button>`:''}
+    </div>
+    <div style="flex:1;overflow-y:auto;">
+      ${_notifications.length===0
+        ? `<div style="padding:40px 20px;text-align:center;color:#9CA3AF;font-size:13px;">아직 알림이 없습니다.</div>`
+        : _notifications.map(n=>`
+          <div onclick="handleNotifClick('${n.id}','${n.resignation_id||''}')"
+            style="padding:12px 16px;border-bottom:1px solid #F9FAFB;cursor:pointer;display:flex;gap:10px;${n.is_read?'':'background:#FFF7ED;'}"
+            onmouseover="this.style.background='#FAFAFA'" onmouseout="this.style.background='${n.is_read?'transparent':'#FFF7ED'}'">
+            <div style="width:32px;height:32px;border-radius:50%;background:#0D9488;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${authorInitial(n.sender_email)}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12.5px;color:#1C1917;line-height:1.5;">
+                <strong>${esc((n.sender_email||'').split('@')[0])}</strong>님이 <strong>${esc(n.employee_name||'')}</strong> 코멘트에서 언급했습니다
+              </div>
+              <div style="font-size:12px;color:#6B7280;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${renderMentionText(n.comment_text||'')}</div>
+              <div style="font-size:11px;color:#9CA3AF;margin-top:4px;">${fmtCommentTime(n.created_at)}</div>
+            </div>
+            ${n.is_read?'':'<div style="width:8px;height:8px;border-radius:50%;background:#F37321;flex-shrink:0;margin-top:8px;"></div>'}
+          </div>`).join('')}
+    </div>`;
+  document.body.appendChild(dd);
+  const hide = (e)=>{ if(!dd.contains(e.target) && e.target.id!=='bellBtn' && !document.getElementById('bellBtn')?.contains(e.target)){ dd.remove(); document.removeEventListener('click',hide); }};
+  setTimeout(()=>document.addEventListener('click',hide), 0);
+}
+async function handleNotifClick(id, resigId) {
+  await markNotifRead(id);
+  document.getElementById('notifDropdown')?.remove();
+  if(resigId){
+    setAdminView('resignations');
+    setTimeout(()=>{ const row = adminRows.find(r=>r.id===resigId); if(row) openCommentPanel(resigId, row.name); }, 400);
+  }
+}
+
+// 퇴직유형 업데이트
+async function updateResigType(id, type) {
+  const val = type || null;
+  await sbAdmin.from('resignation_requests').update({ resignation_type: val }).eq('id', id);
+  const row = adminRows.find(r=>r.id===id);
+  if(row) row.resignation_type = val;
+}
+
 // 코멘트 패널 (Figma 스타일 슬라이드 패널)
 function openCommentPanel(id, name) {
   const row = adminRows.find(r=>r.id===id);
@@ -1530,9 +1675,10 @@ async function addComment(id) {
   inp.value = '';
   row.note = newNote;
   await sbAdmin.from('resignation_requests').update({ note: newNote }).eq('id', id);
+  createMentionNotifications(id, row, msg).catch(()=>{});
   const panel = document.getElementById('comment-panel');
   if(panel?._renderPanel) panel._renderPanel();
-  renderResigBody();
+  if(typeof renderResigBody === 'function') renderResigBody();
 }
 
 async function deleteComment(id, idx) {
@@ -1924,40 +2070,158 @@ function exportArchive() {
 }
 
 // ---- 권한 관리 ----
+const ROLE_INFO = [
+  { key:'hr_admin',       label:'HR Admin',       color:'#DC2626', desc:'전체 권한 — 대시보드/퇴직자 관리/업로드/권한 부여 모두 가능' },
+  { key:'hr_viewer',      label:'HR Viewer',      color:'#0D9488', desc:'조회 전용 — 대시보드/퇴직자 목록/보관함 조회만 가능 (편집 불가)' },
+  { key:'company_admin',  label:'Company Admin',  color:'#8B5CF6', desc:'회사 관리자 — 퇴직자 관리/업로드 가능, 권한 부여 불가' },
+  { key:'uploader_admin', label:'Uploader',       color:'#F59E0B', desc:'업로드 전용 — 직원명부 업로드 및 대시보드 열람만 가능' },
+];
+let _rolesEmpCache = null;
+
+async function lookupEmployeeByEmpId(empId) {
+  if(!empId) return null;
+  const { data: emp } = await sbAdmin.from('employees_master').select('employee_id,name,division,center,team,company_name,employment_status').eq('employee_id', empId).maybeSingle();
+  if(!emp) return null;
+  const email = `${empId}@daewoong.hr.local`;
+  try {
+    const { data } = await sbAdmin.auth.admin.listUsers({ perPage: 500 });
+    const u = (data?.users||[]).find(x => x.email?.toLowerCase() === email.toLowerCase());
+    return { ...emp, email, user_id: u?.id || null };
+  } catch(e){ return { ...emp, email, user_id:null }; }
+}
+
 async function renderRoles() {
   const main = document.getElementById('adminMain');
   if(!adminRoles.includes('hr_admin')){ main.innerHTML=`<div class="p-8"><div class="bg-white border border-ink-100 rounded-xl2 p-8 text-center text-sm text-ink-500">hr_admin 권한이 필요합니다.</div></div>`; return; }
   const { data: roles }=await sbAdmin.from('user_roles').select('*').order('granted_at',{ascending:false});
+  const userIds = [...new Set((roles||[]).map(r=>r.user_id))];
+  let empMap = {};
+  try {
+    const { data: users } = await sbAdmin.auth.admin.listUsers({ perPage: 500 });
+    const uMap = Object.fromEntries((users?.users||[]).map(u=>[u.id, u.email||'']));
+    const emps = (roles||[]).map(r => ({ id:r.user_id, email:uMap[r.user_id]||'' }));
+    const empIds = emps.map(e => (e.email||'').split('@')[0]).filter(Boolean);
+    if(empIds.length){
+      const { data: emList } = await sbAdmin.from('employees_master').select('employee_id,name,division,center,team').in('employee_id', empIds);
+      const emByEmpId = Object.fromEntries((emList||[]).map(e=>[e.employee_id, e]));
+      emps.forEach(e => { const empId = (e.email||'').split('@')[0]; empMap[e.id] = { ...emByEmpId[empId], email:e.email }; });
+    }
+  } catch(e){}
+
   main.innerHTML=`
-    <div class="p-8 max-w-5xl fade-in">
-      <div class="mb-7"><h1 class="text-2xl font-semibold text-ink-900">권한 관리</h1></div>
-      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft p-5 mb-6">
-        <div class="text-sm font-semibold text-ink-900 mb-4">권한 부여</div>
-        <div class="grid md:grid-cols-[1fr_200px_auto] gap-3">
-          <input id="newUserId" placeholder="사용자 UUID" class="h-10 px-3 rounded-lg border border-ink-200 text-sm font-mono focus:border-brand outline-none" />
-          <select id="newRole" class="h-10 px-3 rounded-lg border border-ink-200 text-sm bg-white focus:border-brand outline-none">
-            <option value="hr_viewer">HR Viewer</option>
-            <option value="hr_admin">HR Admin</option>
-            <option value="company_admin">Company Admin</option>
-            <option value="uploader_admin">Uploader</option>
-          </select>
-          <button onclick="grantRole()" class="h-10 px-4 bg-brand hover:bg-brand-hover text-white rounded-lg text-sm font-medium transition">+ 부여</button>
+    <div class="fade-in resp-page" style="padding:28px 32px;max-width:1100px;">
+      <div style="margin-bottom:20px;"><h1 style="font-size:22px;font-weight:700;color:#1C1917;">권한 관리</h1></div>
+
+      <!-- Role 안내 공지 -->
+      <div style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FED7AA;border-radius:12px;padding:16px 18px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:18px;">📢</span>
+          <div style="font-size:14px;font-weight:700;color:#7C2D12;">Role별 접근 권한 안내</div>
         </div>
-        <div id="roleMsg" class="hidden mt-3"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">
+          ${ROLE_INFO.map(r=>`
+            <div style="background:rgba(255,255,255,0.7);border-radius:8px;padding:10px 12px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${r.color};"></span>
+                <span style="font-size:12.5px;font-weight:700;color:${r.color};">${r.label}</span>
+              </div>
+              <div style="font-size:11.5px;color:#6B7280;line-height:1.5;">${r.desc}</div>
+            </div>`).join('')}
+        </div>
       </div>
-      <div class="bg-white rounded-xl2 border border-ink-100 shadow-soft overflow-hidden">
-        <div class="px-5 py-4 border-b border-ink-100 font-semibold text-ink-900">부여된 권한 (${(roles||[]).length})</div>
-        <table class="w-full text-sm"><thead class="bg-ink-50 text-ink-600 text-left"><tr class="border-b border-ink-100"><th class="px-5 py-2.5 font-medium">User UUID</th><th class="px-5 py-2.5 font-medium">Role</th><th class="px-5 py-2.5 font-medium">부여일</th><th class="px-5 py-2.5 w-10"></th></tr></thead>
-        <tbody>${!roles||roles.length===0?`<tr><td colspan="4" class="px-5 py-8 text-center text-ink-400">없음</td></tr>`:roles.map(r=>`<tr class="border-b border-ink-100"><td class="px-5 py-2.5 font-mono text-xs text-ink-700">${esc(r.user_id)}</td><td class="px-5 py-2.5"><span class="px-2 py-0.5 bg-ink-100 rounded text-xs font-medium">${esc(r.role_name)}</span></td><td class="px-5 py-2.5 tabular-nums text-ink-500">${formatDateTime(r.granted_at)}</td><td class="px-5 py-2.5 text-right"><button onclick="revokeRole('${r.id}')" class="text-ink-400 hover:text-accent-red transition">🗑</button></td></tr>`).join('')}</tbody>
-        </table>
+
+      <!-- 권한 부여 -->
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px;margin-bottom:16px;">
+        <div style="font-size:14px;font-weight:700;color:#1C1917;margin-bottom:12px;">권한 부여</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <input id="empIdInput" placeholder="사번 입력 (예: 20231234)" oninput="onEmpIdInput()"
+              style="height:40px;padding:0 14px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;outline:none;min-width:220px;flex:1;"
+              onfocus="this.style.borderColor='#F37321'" onblur="this.style.borderColor='#E5E7EB'"/>
+            <select id="newRole" style="height:40px;padding:0 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:13px;background:#fff;outline:none;min-width:160px;">
+              ${ROLE_INFO.map(r=>`<option value="${r.key}">${r.label}</option>`).join('')}
+            </select>
+            <button onclick="grantRole()" id="grantBtn" disabled style="height:40px;padding:0 18px;background:#F37321;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;opacity:0.4;">+ 부여</button>
+          </div>
+          <div id="empPreview"></div>
+        </div>
+        <div id="roleMsg" class="hidden" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- 부여된 권한 -->
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;">
+        <div style="padding:14px 18px;border-bottom:1px solid #F3F4F6;font-size:14px;font-weight:700;color:#1C1917;">부여된 권한 (${(roles||[]).length})</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="background:#F9FAFB;border-bottom:1.5px solid #E5E7EB;">
+              <th style="padding:11px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">사번</th>
+              <th style="padding:11px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">이름</th>
+              <th style="padding:11px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">소속</th>
+              <th style="padding:11px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">Role</th>
+              <th style="padding:11px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">부여일</th>
+              <th style="padding:11px 16px;width:40px;"></th>
+            </tr></thead>
+            <tbody>${!roles||roles.length===0
+              ? `<tr><td colspan="6" style="padding:36px;text-align:center;color:#9CA3AF;">없음</td></tr>`
+              : roles.map(r=>{
+                  const emp = empMap[r.user_id] || {};
+                  const empId = (emp.email||'').split('@')[0] || '-';
+                  const roleInfo = ROLE_INFO.find(x=>x.key===r.role_name) || {label:r.role_name,color:'#6B7280'};
+                  return `<tr style="border-bottom:1px solid #F3F4F6;">
+                    <td style="padding:11px 16px;font-family:monospace;font-size:12px;color:#374151;">${esc(empId)}</td>
+                    <td style="padding:11px 16px;font-weight:600;color:#111827;">${esc(emp.name||'-')}</td>
+                    <td style="padding:11px 16px;color:#6B7280;font-size:12px;">${esc([emp.division,emp.center,emp.team].filter(Boolean).join(' · ')||'-')}</td>
+                    <td style="padding:11px 16px;"><span style="display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;background:${roleInfo.color}1A;color:${roleInfo.color};">${esc(roleInfo.label)}</span></td>
+                    <td style="padding:11px 16px;color:#9CA3AF;font-size:12px;white-space:nowrap;">${formatDateTime(r.granted_at)}</td>
+                    <td style="padding:11px 16px;text-align:right;"><button onclick="revokeRole('${r.id}')" title="회수" style="color:#9CA3AF;background:none;border:none;cursor:pointer;font-size:14px;" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='#9CA3AF'">🗑</button></td>
+                  </tr>`;
+                }).join('')}</tbody>
+          </table>
+        </div>
       </div>
     </div>`;
 }
+
+let _empLookupTimer = null;
+async function onEmpIdInput() {
+  const val = document.getElementById('empIdInput').value.trim();
+  const preview = document.getElementById('empPreview');
+  const btn = document.getElementById('grantBtn');
+  clearTimeout(_empLookupTimer);
+  if(!val){ preview.innerHTML=''; btn.disabled=true; btn.style.opacity=0.4; return; }
+  preview.innerHTML = `<div style="font-size:12px;color:#9CA3AF;padding:6px 2px;">조회 중...</div>`;
+  _empLookupTimer = setTimeout(async ()=>{
+    const emp = await lookupEmployeeByEmpId(val);
+    if(!emp){
+      preview.innerHTML = `<div style="padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12.5px;color:#991B1B;">✗ 사번 <strong>${esc(val)}</strong> 에 해당하는 직원을 찾을 수 없습니다.</div>`;
+      btn.disabled=true; btn.style.opacity=0.4; btn.dataset.userId='';
+      return;
+    }
+    const hasAccount = !!emp.user_id;
+    preview.innerHTML = `
+      <div style="padding:12px 14px;background:${hasAccount?'#F0FDFA':'#FFFBEB'};border:1px solid ${hasAccount?'#99F6E4':'#FDE68A'};border-radius:8px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div style="width:36px;height:36px;border-radius:50%;background:${hasAccount?'#0D9488':'#F59E0B'};color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${(emp.name||'?')[0]}</div>
+          <div style="flex:1;min-width:180px;">
+            <div style="font-size:14px;font-weight:700;color:#111827;">${esc(emp.name)} <span style="font-size:12px;font-weight:400;color:#6B7280;margin-left:4px;">(${esc(emp.employee_id)})</span></div>
+            <div style="font-size:12px;color:#6B7280;margin-top:2px;">${esc([emp.division,emp.center,emp.team].filter(Boolean).join(' > ')||'-')}</div>
+            <div style="font-size:11px;color:${hasAccount?'#0F766E':'#92400E'};margin-top:3px;">${hasAccount?`✓ 로그인 계정 확인됨 (${emp.email})`:`⚠️ 로그인 계정이 없습니다 (관리자 계정 미등록 직원)`}</div>
+          </div>
+        </div>
+      </div>`;
+    btn.disabled = !hasAccount; btn.style.opacity = hasAccount ? 1 : 0.4;
+    btn.dataset.userId = emp.user_id || '';
+  }, 300);
+}
+
 async function grantRole() {
-  const userId=document.getElementById('newUserId').value.trim(), role=document.getElementById('newRole').value, msg=document.getElementById('roleMsg');
-  if(!userId){ msg.className='mt-3 text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2'; msg.textContent='UUID를 입력해주세요.'; msg.classList.remove('hidden'); return; }
+  const btn=document.getElementById('grantBtn');
+  const userId = btn.dataset.userId;
+  const role=document.getElementById('newRole').value;
+  const msg=document.getElementById('roleMsg');
+  if(!userId){ msg.className='text-sm'; msg.style.cssText='padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;color:#991B1B;font-size:12.5px;margin-top:10px;'; msg.textContent='직원을 먼저 조회해주세요.'; msg.classList.remove('hidden'); return; }
   const { error }=await sbAdmin.from('user_roles').insert({user_id:userId,role_name:role,granted_by:adminUser.id});
-  if(error){ msg.className='mt-3 text-sm text-accent-red bg-red-50 border border-red-100 rounded-lg px-3 py-2'; msg.textContent=error.message; msg.classList.remove('hidden'); return; }
+  if(error){ msg.style.cssText='padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;color:#991B1B;font-size:12.5px;margin-top:10px;'; msg.textContent=error.message; msg.classList.remove('hidden'); return; }
   renderRoles();
 }
 async function revokeRole(id) {
