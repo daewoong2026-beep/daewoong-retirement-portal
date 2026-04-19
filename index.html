@@ -1578,20 +1578,35 @@ async function handleNotifClick(id, resigId) {
   }
 }
 
-// 퇴직유형 업데이트
+// 퇴직유형 업데이트 (저장 검증 포함)
 async function updateResigType(id, type, ev) {
   const val = type || null;
   const sel = ev?.target || document.querySelector(`select[onchange*="updateResigType('${id}'"]`);
-  const prevBg = sel?.style.background;
-  if(sel){ sel.style.transition='background .2s'; sel.style.background='#FEF3C7'; }
-  const { error } = await sbAdmin.from('resignation_requests').update({ resignation_type: val }).eq('id', id);
+  if(sel){ sel.style.transition='background .2s'; sel.style.background='#FEF3C7'; sel.disabled=true; }
+
+  // .select() 로 실제 업데이트된 row 회수
+  const { data, error } = await sbAdmin
+    .from('resignation_requests')
+    .update({ resignation_type: val })
+    .eq('id', id)
+    .select('id,resignation_type');
+
+  if(sel) sel.disabled=false;
+
   if(error){
     if(sel){ sel.style.background='#FEE2E2'; sel.style.color='#991B1B'; }
-    alert('저장 실패: ' + error.message + '\n\nresignation_type 컬럼이 추가되었는지 확인해주세요.');
+    alert('저장 실패: ' + error.message + '\n\n컬럼/권한 확인 필요.');
     return;
   }
+  if(!data || data.length === 0){
+    if(sel){ sel.style.background='#FEE2E2'; sel.style.color='#991B1B'; }
+    alert('저장되지 않았습니다. (0 rows affected)\n\nRLS 정책이 UPDATE를 차단하고 있을 수 있습니다.\nretirement.resignation_requests 테이블의 RLS를 확인해주세요.');
+    return;
+  }
+
+  console.log('[updateResigType] 저장 성공:', data[0]);
   const row = adminRows.find(r=>r.id===id);
-  if(row) row.resignation_type = val;
+  if(row) row.resignation_type = data[0].resignation_type;
   if(sel){
     sel.style.background = val ? ((RESIG_TYPE_COLORS[val]||'#F3F4F6')+'1A') : '#fff';
     sel.style.color = val ? (RESIG_TYPE_COLORS[val]||'#374151') : '#9CA3AF';
@@ -1600,6 +1615,20 @@ async function updateResigType(id, type, ev) {
     sel.style.outline = '2px solid #10B981';
     setTimeout(()=>{ sel.style.outline='none'; }, 800);
   }
+  // 저장 완료 토스트
+  showToast(`퇴직유형 저장: ${val||'미분류'}`);
+}
+
+// 토스트 알림
+function showToast(msg, type='success') {
+  document.getElementById('_toast')?.remove();
+  const t = document.createElement('div');
+  t.id = '_toast';
+  const bg = type==='error' ? '#DC2626' : '#059669';
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:${bg};color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:10000;animation:fadeIn .2s ease;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(()=>t.remove(), 300); }, 1800);
 }
 
 // 코멘트 패널 (Figma 스타일 슬라이드 패널)
