@@ -1386,6 +1386,7 @@ async function renderResignations() {
           ${selHtml('fCtr','전체 센터',centers)}
           ${selHtml('fTeam','전체 팀',teams)}
           ${selHtml('fSt','전체 상태',['완료','미완료','취소됨'])}
+          ${selHtml('fType','전체 퇴직유형',[...RESIG_TYPES,'미분류'])}
           <span id="cntBox" style="margin-left:auto;font-size:13px;color:#6B7280;"></span>
         </div>
       </div>
@@ -1416,7 +1417,7 @@ async function renderResignations() {
         </div>
       </div>
     </div>`;
-  ['fQ','fYear','fDiv','fCtr','fTeam','fSt'].forEach(id=>{
+  ['fQ','fYear','fDiv','fCtr','fTeam','fSt','fType'].forEach(id=>{
     document.getElementById(id).addEventListener('input', renderResigBody);
     document.getElementById(id).addEventListener('change', renderResigBody);
   });
@@ -1428,6 +1429,7 @@ function getFilteredResig() {
   const year=document.getElementById('fYear').value, div=document.getElementById('fDiv').value;
   const ctr=document.getElementById('fCtr').value, tm=document.getElementById('fTeam').value;
   const st=document.getElementById('fSt').value;
+  const type=document.getElementById('fType')?.value||'';
   return adminRows.filter(r=>{
     if(year&&String(new Date(r.resignation_date).getFullYear())!==year) return false;
     if(div&&(r.division||'')!==div) return false;
@@ -1435,6 +1437,7 @@ function getFilteredResig() {
     if(tm&&(r.team||'')!==tm) return false;
     if(st==='취소됨'){ if(!r.is_cancelled) return false; }
     else if(st){ if(r.is_cancelled) return false; if(r.status_label!==st) return false; }
+    if(type){ if(type==='미분류'){ if(r.resignation_type) return false; } else if(r.resignation_type!==type) return false; }
     if(q){ const h=`${r.name||''} ${r.employee_id||''} ${r.division||''} ${r.center||''} ${r.team||''}`.toLowerCase(); if(!h.includes(q)) return false; }
     return true;
   });
