@@ -78,10 +78,55 @@
     --theme-primary-soft: #F5F3FF;
   }
 
-  /* 테마 적용 대상 */
+  /* 테마 적용 대상 — 전역 */
   .admin-sidebar { background: var(--theme-sidebar-bg) !important; }
   .lg-left       { background: var(--theme-sidebar-grad) !important; }
   .ai-box        { background: var(--theme-ai-grad) !important; }
+
+  /* 포커스 컬러 */
+  input:focus, select:focus, textarea:focus { border-color: var(--theme-primary) !important; }
+  .lg-inp:focus { border-color: var(--theme-primary) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 10%, transparent) !important; }
+
+  /* 주요 브랜드 요소 (Tailwind .bg-brand, .text-brand 등) */
+  .bg-brand, button.bg-brand { background-color: var(--theme-primary) !important; }
+  .hover\:bg-brand-hover:hover, .bg-brand:hover { background-color: var(--theme-primary-hover) !important; }
+  .text-brand { color: var(--theme-primary) !important; }
+  .bg-brand-soft { background-color: var(--theme-primary-soft) !important; }
+  .border-brand, .focus\:border-brand:focus { border-color: var(--theme-primary) !important; }
+
+  /* KPI 강조 숫자 (c-purple 카드만) */
+  .kpi-card.c-purple .kpi-val { color: var(--theme-primary) !important; }
+  .kpi-card.c-purple::after { background: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important; }
+
+  /* 로그인 버튼 */
+  .lg-btn {
+    background: linear-gradient(135deg, var(--theme-primary-hover) 0%, var(--theme-primary) 100%) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--theme-primary) 35%, transparent) !important;
+  }
+
+  /* Primary CTA 버튼 (data-primary 속성으로 마킹 가능) */
+  button[data-primary] { background: var(--theme-primary) !important; color:#fff; }
+  button[data-primary]:hover { background: var(--theme-primary-hover) !important; }
+
+  /* 환영 팝업 애니메이션 */
+  @keyframes welcomePop {
+    0%   { opacity:0; transform: scale(0.7) translateY(20px); }
+    60%  { opacity:1; transform: scale(1.05) translateY(0); }
+    100% { opacity:1; transform: scale(1) translateY(0); }
+  }
+  @keyframes welcomeFade { from { opacity:1; } to { opacity:0; } }
+  @keyframes checkDraw {
+    0% { stroke-dashoffset: 50; }
+    100% { stroke-dashoffset: 0; }
+  }
+
+  /* 퇴직자 관리 테이블 반응형 컬럼 숨김 */
+  @media (max-width: 1500px) {
+    .resig-col-hide-lg { display: none; }
+  }
+  @media (max-width: 1280px) {
+    .resig-col-hide-md { display: none; }
+  }
 
   /* ── 반응형 레이아웃 ── */
   .admin-sidebar { width:240px; background:#1D1D1F; position:fixed; top:44px; left:0; height:calc(100vh - 44px); overflow-y:auto; display:flex; flex-direction:column; z-index:150; transition:transform .25s ease; }
@@ -208,6 +253,33 @@ const THEMES = [
   { key:'royal',  label:'로얄 퍼플',   dot:'#8B5CF6' },
 ];
 
+// 환영 팝업 (체크 + 이름)
+function showWelcomePopup(name, role) {
+  document.getElementById('welcomePopup')?.remove();
+  const displayName = name || '관리자';
+  const roleText = role==='hr_admin' ? 'HR 관리자' : role==='hr_viewer' ? 'HR 뷰어' : role==='company_admin' ? '회사 관리자' : role==='uploader_admin' ? '업로더' : '';
+  const el = document.createElement('div');
+  el.id = 'welcomePopup';
+  el.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:28px 36px;box-shadow:0 24px 64px rgba(0,0,0,.18);z-index:10000;text-align:center;animation:welcomePop .4s cubic-bezier(.34,1.56,.64,1);min-width:280px;`;
+  el.innerHTML = `
+    <div style="width:64px;height:64px;border-radius:50%;background:color-mix(in srgb, var(--theme-primary) 15%, transparent);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <svg width="36" height="36" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="24" stroke="var(--theme-primary)" stroke-width="2.5" fill="color-mix(in srgb, var(--theme-primary) 10%, transparent)"/>
+        <path d="M14 27 L23 35 L38 18" stroke="var(--theme-primary)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="50" style="animation:checkDraw .5s ease-out .15s forwards;stroke-dashoffset:50;"/>
+      </svg>
+    </div>
+    <div style="font-size:18px;font-weight:700;color:#1D1D1F;margin-bottom:4px;">어서오세요!</div>
+    <div style="font-size:15px;color:#6E6E73;"><strong style="color:#1D1D1F;">${esc(displayName)}</strong>님 👋</div>
+    ${roleText ? `<div style="margin-top:10px;display:inline-block;padding:3px 10px;background:color-mix(in srgb, var(--theme-primary) 12%, transparent);color:var(--theme-primary);border-radius:999px;font-size:11px;font-weight:700;">${esc(roleText)}</div>` : ''}`;
+  document.body.appendChild(el);
+  setTimeout(()=>{
+    el.style.transition = 'opacity .4s, transform .4s';
+    el.style.opacity = '0';
+    el.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    setTimeout(()=>el.remove(), 400);
+  }, 2200);
+}
+
 function setTheme(key) {
   document.documentElement.setAttribute('data-theme', key);
   try { localStorage.setItem('dw-theme', key); } catch(e){}
@@ -224,7 +296,12 @@ function toggleThemeDropdown() {
   const current = localStorage.getItem('dw-theme') || 'mono';
   const dd = document.createElement('div');
   dd.id = 'themeDropdown';
-  dd.style.cssText = `position:fixed;top:${rect.bottom+4}px;right:${Math.max(10, window.innerWidth - rect.right)}px;width:200px;max-width:calc(100vw - 20px);background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);z-index:300;overflow:hidden;`;
+  // 사이드바 안 버튼 → 우측 상단 방향으로 띄움
+  const onSidebar = rect.left < 260;
+  const top = onSidebar ? (rect.top - 10 - 240) : (rect.bottom + 4);
+  const left = onSidebar ? (rect.left) : '';
+  const right = onSidebar ? '' : Math.max(10, window.innerWidth - rect.right);
+  dd.style.cssText = `position:fixed;top:${top}px;${onSidebar?`left:${left}px`:`right:${right}px`};width:210px;max-width:calc(100vw - 20px);background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.2);z-index:300;overflow:hidden;`;
   dd.innerHTML = `
     <div style="padding:10px 14px;border-bottom:1px solid #F3F4F6;font-size:12px;font-weight:700;color:#1D1D1F;">🎨 테마 선택</div>
     ${THEMES.map(t=>`
@@ -664,6 +741,7 @@ function bindSmartLogin() {
         }
         appMode = 'admin';
         renderAdminApp();
+        setTimeout(()=>showWelcomePopup((adminUser.email||'').split('@')[0], adminRoles[0]), 200);
       } else {
         // 직원: 사번 + 이름 RPC
         const { data, error } = await sb.rpc('check_employee_identity', {
@@ -1042,8 +1120,7 @@ function renderAdminApp() {
       </button>
       <div style="width:1px;height:20px;background:#E5E7EB;margin:0 4px;flex-shrink:0;"></div>
       <span class="topbar-label">${_MENU_LABELS[adminView]||''}</span>
-      <button id="themeBtn" onclick="toggleThemeDropdown()" title="테마" style="width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;margin-left:auto;font-size:15px;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">🎨</button>
-      <button id="bellBtn" onclick="toggleNotifDropdown()" title="알림" style="position:relative;width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">
+      <button id="bellBtn" onclick="toggleNotifDropdown()" title="알림" style="position:relative;width:34px;height:34px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:#374151;flex-shrink:0;margin-left:auto;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='transparent'">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         <span id="notifBadge" style="display:none;position:absolute;top:3px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#DC2626;color:#fff;font-size:10px;font-weight:800;align-items:center;justify-content:center;line-height:1;">0</span>
       </button>
@@ -1061,7 +1138,10 @@ function renderAdminApp() {
         <div style="border-top:1px solid rgba(255,255,255,.08);padding:14px 16px;flex-shrink:0;">
           <div style="font-size:11px;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(adminUser.email)}</div>
           <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">${adminRoles.map(r=>`<span style="padding:1px 6px;background:rgba(255,255,255,.08);border-radius:4px;font-size:10px;color:#9CA3AF;">${r}</span>`).join('')}</div>
-          <button onclick="logout()" style="margin-top:10px;border:none;background:none;font-size:12px;color:#6B7280;cursor:pointer;padding:0;">로그아웃 →</button>
+          <button id="themeBtn" onclick="toggleThemeDropdown()" style="margin-top:10px;width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;font-size:12px;color:#D1D5DB;cursor:pointer;transition:.12s;" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='rgba(255,255,255,.04)'">
+            <span>🎨</span><span style="flex:1;text-align:left;">테마 변경</span><span style="font-size:10px;color:#9CA3AF;">${(THEMES.find(t=>t.key===(localStorage.getItem('dw-theme')||'mono'))||{}).label||''}</span>
+          </button>
+          <button onclick="logout()" style="margin-top:8px;border:none;background:none;font-size:12px;color:#6B7280;cursor:pointer;padding:0;">로그아웃 →</button>
         </div>
       </aside>
       <main id="adminMain" class="admin-main"></main>
@@ -1398,16 +1478,16 @@ async function renderResignations() {
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">상태</th>
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">사번</th>
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">이름</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">본부</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">센터</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">팀</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">퇴사일</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">근무마감</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:130px;">퇴직유형</th>
-                <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">계정삭제</th>
-                <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">사직원</th>
-                <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">SAP</th>
-                <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">등록일시</th>
+                <th class="resig-col-hide-md" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">본부</th>
+                <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">센터</th>
+                <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">팀</th>
+                <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">퇴사일</th>
+                <th class="resig-col-hide-lg" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">근무마감</th>
+                <th style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:110px;">퇴직유형</th>
+                <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">계정삭제</th>
+                <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">사직원</th>
+                <th style="padding:11px 12px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">SAP</th>
+                <th class="resig-col-hide-lg" style="padding:11px 12px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;">등록일시</th>
                 <th style="padding:13px 16px;text-align:left;font-weight:600;color:#4B5563;white-space:nowrap;min-width:140px;">코멘트</th>
                 <th style="padding:13px 16px;text-align:center;font-weight:600;color:#4B5563;white-space:nowrap;">연결 희망자</th>
               </tr>
@@ -1492,24 +1572,24 @@ function renderResigBody() {
                 onmouseout="this.style.color='#9CA3AF';this.style.borderColor='#E5E7EB';">취소</button>
             </div>`}
       </td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.employee_id)}</td>
-      <td style="padding:13px 16px;white-space:nowrap;font-weight:600;font-size:13px;${isCancelled?'color:#9CA3AF;text-decoration:line-through;':'color:#111827;'}">${esc(r.name)}</td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.division||'-')}</td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.center||'-')}</td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${esc(r.team||'-')}</td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${formatDate(r.resignation_date)}</td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#374151;font-size:13px;">${formatDate(r.last_working_date)}</td>
-      <td style="padding:10px 12px;">
+      <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.employee_id)}</td>
+      <td style="padding:11px 12px;white-space:nowrap;font-weight:600;font-size:13px;${isCancelled?'color:#9CA3AF;text-decoration:line-through;':'color:#111827;'}">${esc(r.name)}</td>
+      <td class="resig-col-hide-md" style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.division||'-')}</td>
+      <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.center||'-')}</td>
+      <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${esc(r.team||'-')}</td>
+      <td style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${formatDate(r.resignation_date)}</td>
+      <td class="resig-col-hide-lg" style="padding:11px 12px;white-space:nowrap;color:#374151;font-size:12.5px;">${formatDate(r.last_working_date)}</td>
+      <td style="padding:9px 10px;">
         <select onchange="updateResigType('${r.id}', this.value, event)" ${isCancelled?'disabled':''}
-          style="height:28px;padding:0 6px;border:1px solid ${r.resignation_type?'transparent':'#E5E7EB'};border-radius:6px;font-size:12px;background:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#F3F4F6')+'1A':'#fff'};color:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#374151'):'#9CA3AF'};font-weight:${r.resignation_type?'600':'400'};cursor:pointer;outline:none;max-width:120px;">
+          style="height:28px;padding:0 6px;border:1px solid ${r.resignation_type?'transparent':'#E5E7EB'};border-radius:6px;font-size:12px;background:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#F3F4F6')+'1A':'#fff'};color:${r.resignation_type?(RESIG_TYPE_COLORS[r.resignation_type]||'#374151'):'#9CA3AF'};font-weight:${r.resignation_type?'600':'400'};cursor:pointer;outline:none;max-width:110px;">
           <option value="">미분류</option>
           ${RESIG_TYPES.map(t=>`<option value="${t}" ${r.resignation_type===t?'selected':''}>${t}</option>`).join('')}
         </select>
       </td>
-      <td style="padding:13px 16px;text-align:center;">${chkBtn(r.id,'account_deleted',r.account_deleted)}</td>
-      <td style="padding:13px 16px;text-align:center;">${chkBtn(r.id,'resignation_letter_submitted',r.resignation_letter_submitted)}</td>
-      <td style="padding:13px 16px;text-align:center;">${chkBtn(r.id,'sap_posted',r.sap_posted)}</td>
-      <td style="padding:13px 16px;white-space:nowrap;color:#9CA3AF;font-size:12px;">${formatDateTime(r.created_at)}</td>
+      <td style="padding:11px 12px;text-align:center;">${chkBtn(r.id,'account_deleted',r.account_deleted)}</td>
+      <td style="padding:11px 12px;text-align:center;">${chkBtn(r.id,'resignation_letter_submitted',r.resignation_letter_submitted)}</td>
+      <td style="padding:11px 12px;text-align:center;">${chkBtn(r.id,'sap_posted',r.sap_posted)}</td>
+      <td class="resig-col-hide-lg" style="padding:11px 12px;white-space:nowrap;color:#9CA3AF;font-size:11.5px;">${formatDateTime(r.created_at)}</td>
       <td style="padding:10px 16px;">
         ${comments.length === 0
           ? `<button onclick="openCommentPanel('${r.id}','${esc(r.name)}')"
